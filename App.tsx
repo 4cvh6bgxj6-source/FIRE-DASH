@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { AppState, UserStats, Level, Skin } from './types';
 import { LEVELS, SKINS } from './constants';
 import LoginScreen from './components/LoginScreen';
@@ -22,42 +22,66 @@ const App: React.FC = () => {
     const [unlockedSkins, setUnlockedSkins] = useState<string[]>(['s1']);
     const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
 
-    // Rileva automaticamente se siamo a Dicembre (mese 11 in JS)
+    // Salvataggio automatico ogni volta che cambiano le stats o le skin
+    useEffect(() => {
+        if (stats.username && stats.username !== 'Guest') {
+            const saveData = {
+                stats,
+                unlockedSkins
+            };
+            localStorage.setItem(`fd_user_data_${stats.username.toLowerCase()}`, JSON.stringify(saveData));
+        }
+    }, [stats, unlockedSkins]);
+
     const isChristmasSeason = useMemo(() => {
         const now = new Date();
         return now.getMonth() === 11; 
     }, []);
 
     const handleLogin = (username: string, secretCode: string) => {
-        let isVip = false;
-        let startSkin = 's1';
-        let extraGems = 0;
-        let autoUnlocked: string[] = ['s1'];
-
-        const code = secretCode.trim().toUpperCase();
+        const lowerName = username.trim().toLowerCase();
+        const savedRaw = localStorage.getItem(`fd_user_data_${lowerName}`);
         
-        if (code === 'ADMIN') {
-            isVip = true;
-            extraGems = 2000; 
-        } else if (code === 'ERROR666') {
-            isVip = true;
-            startSkin = 's666';
-            autoUnlocked.push('s666');
-            extraGems = 666;
-        } else if (code === 'VIP') {
-            isVip = true;
-            extraGems = 1000;
+        let initialStats: UserStats = {
+            username: username || 'Guest',
+            gems: 0,
+            isPremium: false,
+            isVip: false,
+            selectedSkinId: 's1'
+        };
+        let initialSkins: string[] = ['s1'];
+
+        // Se l'account esiste già, carichiamo i dati salvati
+        if (savedRaw) {
+            try {
+                const parsed = JSON.parse(savedRaw);
+                initialStats = { ...parsed.stats, username: username }; // Assicuriamo che l'username sia quello corretto
+                initialSkins = parsed.unlockedSkins;
+            } catch (e) {
+                console.error("Errore nel caricamento dei dati", e);
+            }
         }
 
-        setStats({
-            username: username || 'Guest',
-            gems: extraGems,
-            isPremium: isVip,
-            isVip: isVip,
-            selectedSkinId: startSkin
-        });
+        // Applichiamo i codici segreti sopra i dati caricati (se inseriti)
+        const code = secretCode.trim().toUpperCase();
+        if (code === 'ADMIN') {
+            initialStats.isVip = true;
+            initialStats.isPremium = true;
+            initialStats.gems += 2000; 
+        } else if (code === 'ERROR666') {
+            initialStats.isVip = true;
+            initialStats.isPremium = true;
+            initialStats.selectedSkinId = 's666';
+            if (!initialSkins.includes('s666')) initialSkins.push('s666');
+            initialStats.gems += 666;
+        } else if (code === 'VIP') {
+            initialStats.isVip = true;
+            initialStats.isPremium = true;
+            initialStats.gems += 1000;
+        }
 
-        setUnlockedSkins(autoUnlocked);
+        setStats(initialStats);
+        setUnlockedSkins(initialSkins);
         setView(AppState.MENU);
     };
 
@@ -86,7 +110,6 @@ const App: React.FC = () => {
 
     return (
         <div className="h-screen w-screen bg-black overflow-hidden select-none relative">
-            {/* Effetto neve globale se è Natale */}
             {isChristmasSeason && (
                 <div className="absolute inset-0 pointer-events-none z-[100] opacity-30">
                     <div className="snow-container"></div>
