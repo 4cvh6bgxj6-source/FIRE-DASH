@@ -17,6 +17,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     const [gemsCollected, setGemsCollected] = useState(0);
     const [isAdminOpen, setIsAdminOpen] = useState(false);
     const [isGodMode, setIsGodMode] = useState(false);
+    const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing');
     
     const inputHeld = useRef(false);
     const player = useRef({
@@ -35,11 +36,22 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         levelLength: 6000
     });
 
-    useEffect(() => {
+    const initLevel = () => {
         const obstacles: typeof world.current.obstacles = [];
         const levelLength = 6000;
         world.current.levelLength = levelLength;
+        world.current.x = 0;
+        world.current.finished = false;
         
+        player.current = {
+            y: 300,
+            dy: 0,
+            width: 40,
+            height: 40,
+            rotation: 0,
+            isGrounded: false
+        };
+
         for (let i = 800; i < levelLength; i += (450 / level.speedMultiplier)) {
             const rand = Math.random();
             if (rand < 0.45) {
@@ -54,7 +66,16 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             }
         }
         world.current.obstacles = obstacles;
+        setGemsCollected(0);
+        setProgress(0);
+        setGameStatus('playing');
+    };
 
+    useEffect(() => {
+        initLevel();
+    }, [level]);
+
+    useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
         const ctx = canvas.getContext('2d');
@@ -62,8 +83,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
         let animationFrameId: number;
 
-        // Unified Input Handlers
         const startAction = () => {
+            if (gameStatus !== 'playing') return;
             inputHeld.current = true;
             if (!skin.canFly && player.current.isGrounded) {
                 player.current.dy = JUMP_FORCE;
@@ -76,15 +97,11 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         };
 
         const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                startAction();
-            }
+            if (e.code === 'Space' || e.code === 'ArrowUp') startAction();
         };
 
         const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                stopAction();
-            }
+            if (e.code === 'Space' || e.code === 'ArrowUp') stopAction();
         };
 
         const handleMouseDown = (e: MouseEvent) => {
@@ -94,13 +111,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
         const handleTouchStart = (e: TouchEvent) => {
             if ((e.target as HTMLElement).closest('button')) return;
-            // Evita scrolling accidentale durante il gioco
             if (e.cancelable) e.preventDefault();
             startAction();
-        };
-
-        const handleTouchEnd = (e: TouchEvent) => {
-            stopAction();
         };
 
         window.addEventListener('keydown', handleKeyDown);
@@ -108,12 +120,11 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         canvas.addEventListener('mousedown', handleMouseDown);
         window.addEventListener('mouseup', stopAction);
         canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
-        window.addEventListener('touchend', handleTouchEnd);
+        window.addEventListener('touchend', stopAction);
 
         const update = () => {
-            if (world.current.finished) return;
+            if (world.current.finished || gameStatus !== 'playing') return;
 
-            // Meccanica Volo ERROR 666 (Funziona se inputHeld è true)
             if (skin.canFly && inputHeld.current) {
                 player.current.dy -= 1.6; 
             }
@@ -148,7 +159,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
             if (currentProgress >= 100) {
                 world.current.finished = true;
-                onEnd(true, gemsCollected);
+                setGameStatus('won');
             }
 
             const px = 150;
@@ -169,7 +180,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                     }
                     if (!isGodMode) {
                         world.current.finished = true;
-                        onEnd(false, gemsCollected);
+                        setGameStatus('lost');
                         return;
                     }
                 }
@@ -285,9 +296,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             canvas.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', stopAction);
             canvas.removeEventListener('touchstart', handleTouchStart);
-            window.removeEventListener('touchend', handleTouchEnd);
+            window.removeEventListener('touchend', stopAction);
         };
-    }, [level, skin, onEnd, gemsCollected, isGodMode]);
+    }, [level, skin, isGodMode, gameStatus]);
 
     return (
         <div className="h-full w-full relative flex items-center justify-center bg-black overflow-hidden select-none">
@@ -298,6 +309,67 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                     onToggleGodMode={setIsGodMode}
                     isGodMode={isGodMode}
                 />
+            )}
+
+            {/* Schermata Sconfitta */}
+            {gameStatus === 'lost' && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="text-center p-8 bg-gray-900 border-2 border-red-600 rounded-3xl shadow-[0_0_50px_rgba(220,38,38,0.5)] max-w-sm w-full">
+                        <h2 className={`text-6xl font-black italic mb-2 tracking-tighter ${skin.id === 's666' ? 'text-red-600 animate-pulse' : 'text-white'}`}>
+                            {skin.id === 's666' ? 'FAILURE' : 'HAI PERSO!'}
+                        </h2>
+                        <p className="text-gray-400 font-bold uppercase text-xs mb-8 tracking-widest">Ritenta, sarai più fortunato!</p>
+                        
+                        <div className="flex flex-col gap-4">
+                            <button 
+                                onClick={initLevel}
+                                className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-xl transition-all transform hover:scale-105 active:scale-95 shadow-lg shadow-red-600/20 uppercase tracking-widest"
+                            >
+                                <i className="fas fa-redo-alt mr-2"></i> Riprova
+                            </button>
+                            <button 
+                                onClick={() => onEnd(false, gemsCollected)}
+                                className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-black py-4 rounded-xl transition-all uppercase tracking-widest"
+                            >
+                                <i className="fas fa-home mr-2"></i> Menu
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Schermata Vittoria */}
+            {gameStatus === 'won' && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500">
+                    <div className="text-center p-10 bg-gray-900 border-2 border-yellow-500 rounded-3xl shadow-[0_0_60px_rgba(234,179,8,0.4)] max-w-md w-full">
+                        <div className="mb-6 relative">
+                            <i className="fas fa-crown text-6xl text-yellow-400 animate-bounce"></i>
+                            <div className="absolute inset-0 bg-yellow-400/20 blur-2xl rounded-full"></div>
+                        </div>
+                        <h2 className="text-4xl font-black italic text-white mb-2 uppercase tracking-tighter">
+                            Congratulazioni!
+                        </h2>
+                        <p className="text-yellow-400 font-black text-2xl mb-8 animate-pulse">
+                            ECCO 90 GEMME !
+                        </p>
+                        
+                        <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-2xl mb-8 flex items-center justify-center gap-4">
+                            <div className="text-left">
+                                <div className="text-[10px] text-gray-400 uppercase font-bold">Gemme Raccolte</div>
+                                <div className="text-2xl font-black text-blue-400 flex items-center gap-2">
+                                    <i className="fas fa-gem"></i> {gemsCollected}
+                                </div>
+                            </div>
+                        </div>
+
+                        <button 
+                            onClick={() => onEnd(true, gemsCollected)}
+                            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 hover:from-yellow-400 hover:to-orange-400 text-black font-black py-5 rounded-2xl transition-all transform hover:scale-105 active:scale-95 shadow-xl shadow-yellow-500/20 uppercase tracking-widest text-lg"
+                        >
+                            Continua <i className="fas fa-chevron-right ml-2"></i>
+                        </button>
+                    </div>
+                </div>
             )}
 
             <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none z-10">

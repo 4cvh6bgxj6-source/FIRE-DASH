@@ -6,7 +6,8 @@ export enum AppState {
     GAME = 'GAME',
     SHOP = 'SHOP',
     SKINS = 'SKINS',
-    GIFT_SHOP = 'GIFT_SHOP'
+    GIFT_SHOP = 'GIFT_SHOP',
+    FRIENDS_LOBBY = 'FRIENDS_LOBBY'
 }
 
 export interface Level {
@@ -27,7 +28,7 @@ export interface Skin {
     icon: string;
     requiredTier?: 'free' | 'premium' | 'vip';
     isGlitched?: boolean;
-    canFly?: boolean; // Nuova meccanica per ERROR 666
+    canFly?: boolean;
 }
 
 export interface UserStats {

@@ -9,9 +9,11 @@ import GameView from './components/GameView';
 import Shop from './components/Shop';
 import SkinSelector from './components/SkinSelector';
 import GiftShop from './components/GiftShop';
+import FriendsLobby from './components/FriendsLobby';
 
 const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
+    const [opponent, setOpponent] = useState<string | null>(null);
     
     const [stats, setStats] = useState<UserStats>({
         username: '',
@@ -69,7 +71,6 @@ const App: React.FC = () => {
             initialStats.isPremium = true;
             initialStats.gems += 500;
         } else if (normalizedCode === 'ERROR 666' || normalizedCode === 'ERROR666') {
-            // Sblocco immediato skin segreta
             initialStats.isVip = true;
             initialStats.isPremium = true;
             initialStats.selectedSkinId = 's666';
@@ -93,7 +94,7 @@ const App: React.FC = () => {
 
     const handleGameOver = (success: boolean, gemsCollected: number) => {
         let totalReward = gemsCollected;
-        if (success) totalReward += 50;
+        if (success) totalReward += 90; 
 
         if (stats.isVip) {
             totalReward *= 2;
@@ -102,6 +103,7 @@ const App: React.FC = () => {
         }
 
         setStats(prev => ({ ...prev, gems: prev.gems + totalReward }));
+        setOpponent(null); // Reset avversario
         setView(AppState.LEVEL_SELECT);
     };
 
@@ -136,6 +138,11 @@ const App: React.FC = () => {
         setStats(prev => ({ ...prev, gems: prev.gems + amount }));
     };
 
+    const handleStartChallenge = (opponentUsername: string) => {
+        setOpponent(opponentUsername);
+        setView(AppState.LEVEL_SELECT);
+    };
+
     const getEffectiveLevel = (level: Level) => {
         if (stats.isVip && level.id === '4') {
             return { ...level, speedMultiplier: 2 };
@@ -154,11 +161,22 @@ const App: React.FC = () => {
                 />
             )}
 
+            {view === AppState.FRIENDS_LOBBY && (
+                <FriendsLobby 
+                    currentUser={stats.username}
+                    onBack={() => setView(AppState.MENU)}
+                    onChallenge={handleStartChallenge}
+                />
+            )}
+
             {view === AppState.LEVEL_SELECT && (
                 <LevelSelect 
                     levels={LEVELS.map(l => getEffectiveLevel(l))} 
                     onSelect={handleSelectLevel} 
-                    onBack={() => setView(AppState.MENU)} 
+                    onBack={() => {
+                        setOpponent(null);
+                        setView(AppState.MENU);
+                    }} 
                 />
             )}
 
@@ -199,6 +217,14 @@ const App: React.FC = () => {
                     onClaim={handleClaimGems}
                     onBack={() => setView(AppState.MENU)}
                 />
+            )}
+
+            {/* Banner Sfida Attiva */}
+            {opponent && view !== AppState.GAME && view !== AppState.LOGIN && (
+                <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 px-6 py-2 rounded-full border border-white/20 shadow-2xl animate-bounce z-[100] flex items-center gap-3">
+                    <i className="fas fa-swords text-white"></i>
+                    <span className="text-white font-black text-xs uppercase tracking-widest">SFIDA CONTRO {opponent}</span>
+                </div>
             )}
             
             {view !== AppState.LOGIN && view !== AppState.GAME && (

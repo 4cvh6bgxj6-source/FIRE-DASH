@@ -9,7 +9,7 @@ interface Props {
 
 const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
     return (
-        <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black">
+        <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black font-['Orbitron']">
             <div className="absolute top-8 left-8">
                 <div className="text-gray-400 text-sm mb-1 uppercase tracking-tighter">Bentornato,</div>
                 <div className="text-2xl font-black text-white flex items-center gap-2">
@@ -31,6 +31,15 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                 </button>
 
                 <div className="flex flex-col gap-6">
+                    {/* Friends Button (NUOVO) */}
+                    <button 
+                        onClick={() => onNavigate(AppState.FRIENDS_LOBBY)}
+                        className="group relative flex items-center gap-4 bg-blue-700 hover:bg-blue-600 px-6 py-4 rounded-2xl shadow-xl shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
+                    >
+                        <i className="fas fa-users text-2xl text-white"></i>
+                        <span className="font-black text-white uppercase tracking-widest">Sfida Amici</span>
+                    </button>
+
                     {/* Gift Shop Button */}
                     <button 
                         onClick={() => onNavigate(AppState.GIFT_SHOP)}
