@@ -13,6 +13,7 @@ export const SKINS: Skin[] = [
     { id: 's2', name: 'Neon Green', color: '#10b981', cost: 50, unlocked: false, icon: 'fa-cube', requiredTier: 'free' },
     { id: 's3', name: 'Ruby Blaze', color: '#ef4444', cost: 150, unlocked: false, icon: 'fa-diamond', requiredTier: 'free' },
     { id: 's4', name: 'Golden God', color: '#f59e0b', cost: 500, unlocked: false, icon: 'fa-crown', requiredTier: 'free' },
+    { id: 's-man', name: 'Omino Salterino', color: '#ffffff', cost: 200, unlocked: false, icon: 'fa-walking', requiredTier: 'free' },
     
     // Exclusive Premium Skins
     { id: 's6', name: 'Neon Spark', color: '#ff00ff', cost: 0, unlocked: false, icon: 'fa-bolt', requiredTier: 'premium' },

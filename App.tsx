@@ -162,9 +162,9 @@ const App: React.FC = () => {
         <div className="h-screen w-screen bg-black overflow-hidden relative select-none">
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
             {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} />}
-            {view === AppState.FRIENDS_LOBBY && <FriendsLobby currentUser={stats.username} onBack={() => setView(AppState.MENU)} onChallenge={handleStartChallenge} />}
+            {view === AppState.FRIENDS_LOBBY && <FriendsLobby currentUser={stats.username} isVip={stats.isVip} onBack={() => setView(AppState.MENU)} onChallenge={handleStartChallenge} />}
             {view === AppState.LEVEL_SELECT && <LevelSelect levels={LEVELS.map(l => getEffectiveLevel(l))} onSelect={handleSelectLevel} onBack={() => { setOpponent(null); setView(AppState.MENU); }} />}
-            {view === AppState.GAME && currentLevel && <GameView level={getEffectiveLevel(currentLevel)} skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} username={stats.username} onEnd={handleGameOver} isSebastianMode={isSebastianMode} />}
+            {view === AppState.GAME && currentLevel && <GameView level={getEffectiveLevel(currentLevel)} skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} username={stats.username} isVip={stats.isVip} onEnd={handleGameOver} isSebastianMode={isSebastianMode} />}
             {view === AppState.SHOP && <Shop stats={stats} isChristmasSeason={isChristmasSeason} onPurchase={handlePurchase} onBack={() => setView(AppState.MENU)} />}
             {view === AppState.SKINS && <SkinSelector skins={SKINS} unlockedSkins={unlockedSkins} selectedSkinId={stats.selectedSkinId} gems={stats.gems} stats={stats} isChristmasSeason={isChristmasSeason} onUnlock={handleUnlockSkin} onSelect={handleSelectSkin} onBack={() => setView(AppState.MENU)} />}
             {view === AppState.GIFT_SHOP && <GiftShop onClaim={handleClaimGems} onBack={() => setView(AppState.MENU)} />}
@@ -195,9 +195,15 @@ const App: React.FC = () => {
             
             {view !== AppState.LOGIN && view !== AppState.GAME && (
                 <div className="absolute top-4 right-4 flex items-center gap-4 bg-gray-900/80 px-4 py-2 rounded-full border border-gray-700 z-50">
-                    <div className="flex items-center gap-2 text-blue-400 font-bold"><i className="fas fa-gem"></i><span>{stats.gems}</span></div>
-                    {stats.isVip && <span className="text-yellow-400 text-xs font-black px-2 py-1 bg-yellow-900/30 rounded border border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]">VIP</span>}
-                    {stats.isPremium && !stats.isVip && <span className="text-purple-400 text-xs font-black px-2 py-1 bg-purple-900/30 rounded border border-purple-500">PREMIUM</span>}
+                    <span className={`text-[10px] font-black uppercase tracking-widest mr-2 ${stats.isVip ? 'rainbow-text' : 'text-gray-300'}`}>
+                        {stats.username}
+                    </span>
+                    <div className="flex items-center gap-2 text-blue-400 font-bold border-l border-white/10 pl-4">
+                        <i className="fas fa-gem"></i>
+                        <span>{stats.gems}</span>
+                    </div>
+                    {stats.isVip && <span className="text-yellow-400 text-[8px] font-black px-1.5 py-0.5 bg-yellow-900/30 rounded border border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]">VIP</span>}
+                    {stats.isPremium && !stats.isVip && <span className="text-purple-400 text-[8px] font-black px-1.5 py-0.5 bg-purple-900/30 rounded border border-purple-500">PREMIUM</span>}
                 </div>
             )}
 

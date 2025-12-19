@@ -8,11 +8,12 @@ interface Props {
     level: Level;
     skin: Skin;
     username: string;
+    isVip?: boolean;
     onEnd: (success: boolean, gems: number) => void;
     isSebastianMode?: boolean;
 }
 
-const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMode }) => {
+const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSebastianMode }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [progress, setProgress] = useState(0);
     const [gemsCollected, setGemsCollected] = useState(0);
@@ -41,7 +42,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
 
     const initLevel = () => {
         const obstacles: typeof world.current.obstacles = [];
-        // Livello molto più lungo per Sebastian a causa della velocità 10x
         const levelLength = isSeba ? 35000 : 8000; 
         world.current.levelLength = levelLength;
         world.current.x = 0;
@@ -56,7 +56,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
             isGrounded: false
         };
 
-        // Generazione base
         for (let i = 800; i < levelLength; i += (450 / level.speedMultiplier)) {
             const rand = Math.random();
             if (rand < 0.4) obstacles.push({ x: i, width: 40, height: 40, type: 'spike' });
@@ -64,7 +63,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
             else obstacles.push({ x: i, width: 30, height: 30, type: 'gem' });
         }
 
-        // SEBASTIAN MODE: 1000 TRAPPOLE EXTRA GARANTITE
         if (isSeba) {
             for (let j = 0; j < 1000; j++) {
                 const randomX = 500 + Math.random() * (levelLength - 600);
@@ -93,7 +91,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
 
         const startAction = () => {
             if (gameStatus !== 'playing') return;
-            // SEBASTIAN NON PUÒ SALTARE
             if (isSeba) return;
 
             inputHeld.current = true;
@@ -140,7 +137,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
                 player.current.isGrounded = false;
             }
 
-            // VELOCITÀ x10 REALE
             let effectiveSpeed = BASE_SPEED * level.speedMultiplier;
             if (isSeba) effectiveSpeed *= 10;
             
@@ -243,16 +239,39 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
             if (isSeba) {
                 const colors = ['#6366f1', '#4f46e5', '#ffffff', '#000000'];
                 ctx.fillStyle = colors[Math.floor(Date.now() / 15) % colors.length];
-                if (Math.random() > 0.4) ctx.fillRect(-player.current.width, (Math.random()-0.5)*200, 5, 5);
             } else if (skin.id === 's666') {
                 const colors = ['#ff0000', '#000000', '#660000', '#ffffff'];
                 ctx.fillStyle = colors[Math.floor(Date.now() / 30) % colors.length];
             } else ctx.fillStyle = skin.color;
             
-            ctx.fillRect(-player.current.width / 2, -player.current.height / 2, player.current.width, player.current.height);
-            ctx.strokeStyle = isSeba ? '#fff' : (skin.id === 's666' ? '#000' : '#fff');
-            ctx.lineWidth = 2;
-            ctx.strokeRect(-player.current.width / 2, -player.current.height / 2, player.current.width, player.current.height);
+            // Render skin as FontAwesome icon
+            ctx.font = '24px "Font Awesome 6 Free"';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fontWeight = '900';
+            
+            // Map common FA icon classes to unicode for canvas
+            let iconCode = '\uf0c8'; // square default
+            if (skin.icon === 'fa-square') iconCode = '\uf0c8';
+            if (skin.icon === 'fa-cube') iconCode = '\uf1b2';
+            if (skin.icon === 'fa-diamond') iconCode = '\uf219';
+            if (skin.icon === 'fa-crown') iconCode = '\uf3a5';
+            if (skin.icon === 'fa-bolt') iconCode = '\uf0e7';
+            if (skin.icon === 'fa-terminal') iconCode = '\uf120';
+            if (skin.icon === 'fa-sun') iconCode = '\uf185';
+            if (skin.icon === 'fa-fire') iconCode = '\uf06d';
+            if (skin.icon === 'fa-user-secret') iconCode = '\uf21b';
+            if (skin.icon === 'fa-skull') iconCode = '\uf54c';
+            if (skin.icon === 'fa-ghost') iconCode = '\uf6e2';
+            if (skin.icon === 'fa-walking') iconCode = '\uf554'; // Omino che cammina/salta
+
+            ctx.fillText(iconCode, 0, 0);
+            
+            if (isSeba || skin.id === 's666') {
+                ctx.strokeStyle = isSeba ? '#fff' : '#000';
+                ctx.lineWidth = 1;
+                ctx.strokeText(iconCode, 0, 0);
+            }
             ctx.restore();
 
             update();
@@ -267,7 +286,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
             window.removeEventListener('keyup', handleKeyUp);
             canvas.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', stopAction);
-            canvas.removeEventListener('touchstart', handleTouchStart);
+            canvas.addEventListener('touchstart', handleTouchStart);
             window.removeEventListener('touchend', stopAction);
         };
     }, [level, skin.id, isGodMode, gameStatus]);
@@ -291,7 +310,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
 
             {gameStatus === 'won' && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md animate-in zoom-in duration-500">
-                    <div className="text-center p-10 bg-gray-900 border-2 border-yellow-500 rounded-3xl shadow-[0_0_60px_rgba(234,179,8,0.4)] max-w-md w-full">
+                    <div className="text-center p-10 bg-gray-900 border-2 border-yellow-500 rounded-3xl shadow-[0_0_60px_rgba(234,179,8,0.4)] max-md w-full">
                         <i className="fas fa-crown text-6xl text-yellow-400 animate-bounce mb-6"></i>
                         <h2 className="text-4xl font-black italic text-white mb-2 uppercase">SUPREME!</h2>
                         <p className="text-yellow-400 font-black text-2xl mb-8">PREMIO MASSIMO!</p>
@@ -305,7 +324,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMo
 
             <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none z-10">
                 <div className="flex flex-col gap-2 pointer-events-auto">
-                    <div className="text-white font-bold text-sm tracking-widest uppercase opacity-70">PLAYER: {username}</div>
+                    <div className="text-white font-bold text-sm tracking-widest uppercase opacity-70">
+                        PLAYER: <span className={isVip ? 'rainbow-text' : ''}>{username}</span>
+                    </div>
                     <div className={`text-white font-black text-3xl italic tracking-tighter ${isSeba ? 'text-indigo-400 font-mono' : ''}`}>{isSeba ? 'SEBASTIAN_MOD_ON' : level.name}</div>
                     <div className="text-blue-400 font-bold flex items-center gap-3 text-lg">
                         <i className="fas fa-gem animate-bounce"></i> {gemsCollected}

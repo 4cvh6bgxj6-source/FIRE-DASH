@@ -21,13 +21,22 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
     });
 
     return (
-        <div className="flex flex-col items-center h-full w-full bg-black p-8 overflow-y-auto">
+        <div className="flex flex-col items-center h-full w-full bg-black p-4 md:p-8 overflow-y-auto relative">
+            {/* Christmas Corner Ribbon */}
+            {isChristmasSeason && (
+                <div className="fixed top-0 left-0 w-32 h-32 z-50 pointer-events-none overflow-hidden">
+                    <div className="absolute top-0 left-0 bg-red-600 text-white font-black text-[10px] px-10 py-1 -rotate-45 -translate-x-10 translate-y-4 shadow-lg border-b border-white/20 uppercase">
+                        SALE -25%
+                    </div>
+                </div>
+            )}
+
             <div className="w-full max-w-6xl flex justify-between items-center mb-12">
-                <button onClick={onBack} className="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-xl text-white font-bold transition-colors">
+                <button onClick={onBack} className="bg-white/10 hover:bg-white/20 px-6 py-2 rounded-xl text-white font-bold transition-all transform active:scale-95">
                     <i className="fas fa-arrow-left mr-2"></i> Menu
                 </button>
                 <div className="text-center">
-                    <h2 className="text-4xl font-black italic text-white uppercase tracking-tighter">Skins & Cubi</h2>
+                    <h2 className="text-4xl md:text-5xl font-black italic text-white uppercase tracking-tighter">Skins & Cubi</h2>
                     <p className="text-gray-500 text-[10px] uppercase font-bold tracking-[0.2em]">Personalizza il tuo Fire Dasher</p>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-900 px-4 py-2 rounded-xl border border-white/5">
@@ -50,9 +59,16 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                         <div 
                             key={skin.id} 
                             className={`relative flex flex-col items-center p-6 rounded-3xl border-2 transition-all duration-300 ${
-                                isSelected ? 'border-blue-500 bg-blue-900/20' : 'border-white/5 bg-gray-900'
+                                isSelected ? 'border-blue-500 bg-blue-900/20 scale-[1.02]' : 'border-white/5 bg-gray-900 hover:border-white/20'
                             } ${!hasRequiredTier && !isUnlocked ? 'opacity-40 grayscale' : ''} ${isSecret ? 'border-red-900/30' : ''}`}
                         >
+                            {/* Sale Tag */}
+                            {isChristmasSeason && !isUnlocked && skin.cost > 0 && (
+                                <div className="absolute -top-2 -left-2 bg-red-600 text-white font-black text-[8px] px-2 py-1 rounded-lg shadow-lg z-20 border border-white/20 animate-pulse">
+                                    -25%
+                                </div>
+                            )}
+
                             <div className="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
                                 {skin.isGlitched && (
                                     <div className={`${skin.id === 's666' || skin.id === 's-seba' ? 'bg-red-950 text-red-500 border border-red-500' : 'bg-red-600 text-white'} text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse uppercase`}>
@@ -79,7 +95,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                             {isUnlocked ? (
                                 <button 
                                     onClick={() => onSelect(skin.id)} 
-                                    className={`w-full py-2.5 rounded-xl font-black text-xs uppercase transition-all ${
+                                    className={`w-full py-2.5 rounded-xl font-black text-xs uppercase transition-all transform active:scale-95 ${
                                         isSelected ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                     }`}
                                 >
@@ -89,15 +105,20 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                                 <button 
                                     disabled={!hasRequiredTier} 
                                     onClick={() => onUnlock(skin, discountedCost)} 
-                                    className={`w-full py-2.5 rounded-xl font-black text-xs uppercase transition-all ${
+                                    className={`w-full py-2.5 rounded-xl font-black text-xs uppercase transition-all transform active:scale-95 ${
                                         hasRequiredTier 
                                             ? (skin.id === 's666' ? 'bg-red-900 hover:bg-red-800' : 'bg-emerald-600 hover:bg-emerald-500') + ' text-white shadow-lg' 
                                             : 'bg-gray-800 text-gray-500 cursor-not-allowed'
                                     }`}
                                 >
-                                    <div className="flex items-center justify-center gap-2">
-                                        <i className="fas fa-gem text-[10px]"></i>
-                                        <span>{discountedCost}</span>
+                                    <div className="flex flex-col items-center justify-center">
+                                        <div className="flex items-center justify-center gap-2">
+                                            <i className="fas fa-gem text-[10px]"></i>
+                                            <span>{discountedCost}</span>
+                                        </div>
+                                        {isChristmasSeason && skin.cost > 0 && (
+                                            <span className="text-[7px] line-through opacity-50">{skin.cost}</span>
+                                        )}
                                     </div>
                                 </button>
                             )}

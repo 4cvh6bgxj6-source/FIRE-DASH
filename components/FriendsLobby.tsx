@@ -6,6 +6,7 @@ interface Props {
     onBack: () => void;
     onChallenge: (opponentUsername: string) => void;
     currentUser: string;
+    isVip: boolean;
 }
 
 const GLOBAL_PLAYERS = [
@@ -16,7 +17,7 @@ const GLOBAL_PLAYERS = [
     { name: 'GHOST_PLAYER', status: 'Online', level: 'Insane' },
 ];
 
-const FriendsLobby: React.FC<Props> = ({ onBack, onChallenge, currentUser }) => {
+const FriendsLobby: React.FC<Props> = ({ onBack, onChallenge, currentUser, isVip }) => {
     const [searchQuery, setSearchQuery] = useState('');
     const [localPlayers, setLocalPlayers] = useState<string[]>([]);
     const [isSearching, setIsSearching] = useState(false);
@@ -88,7 +89,10 @@ const FriendsLobby: React.FC<Props> = ({ onBack, onChallenge, currentUser }) => 
                         <p className="text-blue-400 text-[10px] font-bold tracking-widest uppercase">Server Globali Connessi</p>
                     </div>
                 </div>
-                <div className="w-[100px]"></div>
+                <div className="flex flex-col items-end">
+                    <span className="text-[8px] text-gray-500 uppercase font-black">Profilo</span>
+                    <span className={`text-xs font-black uppercase ${isVip ? 'rainbow-text' : 'text-white'}`}>{currentUser}</span>
+                </div>
             </div>
 
             <div className="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-8">

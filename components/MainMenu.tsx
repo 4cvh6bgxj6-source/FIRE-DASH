@@ -13,7 +13,7 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
             {/* Header Profilo - Più compatto su mobile */}
             <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10">
                 <div className="text-gray-500 text-[10px] md:text-sm mb-0 md:mb-1 uppercase tracking-tighter">Bentornato,</div>
-                <div className="text-lg md:text-2xl font-black text-white flex items-center gap-2">
+                <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
                     {stats.username}
                     {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
                 </div>
