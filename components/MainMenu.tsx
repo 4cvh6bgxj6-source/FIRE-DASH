@@ -111,8 +111,8 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
             <div className="mt-12 md:mt-24 max-w-lg text-center px-4 hidden sm:block">
                 <div className="text-[10px] text-gray-600 uppercase mb-3 tracking-[0.4em]">Aggiornamenti Live</div>
                 <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
-                    <p className="text-gray-400 text-xs italic font-bold">
-                        SUGGERIMENTO: <span className="text-orange-400 uppercase">USA I CODICI SEGRETI PER SBLOCCARE LE SKIN ADMIN!</span>
+                    <p className="text-gray-400 text-xs italic font-bold uppercase tracking-widest">
+                        PROJECT BY <span className="text-orange-500">FIRE DEV TEAM</span>
                     </p>
                 </div>
             </div>

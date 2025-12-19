@@ -58,7 +58,7 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
                         placeholder="Inserisci codice..."
                         className="w-full bg-black/50 border border-gray-600 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-orange-500 transition-all font-mono"
                     />
-                    <p className="text-[8px] text-gray-500 mt-2 ml-1">Usa codici come "ADMIN" o "VIP" per sbloccare privilegi istantanei.</p>
+                    <p className="text-[9px] text-orange-500 mt-2 ml-1 font-black uppercase tracking-[0.2em]">PROJECT BY FIRE DEV TEAM</p>
                 </div>
 
                 <button 
