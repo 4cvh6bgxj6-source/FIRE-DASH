@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { AppState, UserStats, Level, Skin } from './types';
+import { AppState, UserStats, Level, Skin, MPChallenge } from './types';
 import { LEVELS, SKINS } from './constants';
 import LoginScreen from './components/LoginScreen';
 import MainMenu from './components/MainMenu';
@@ -9,6 +9,9 @@ import GameView from './components/GameView';
 import Shop from './components/Shop';
 import SkinSelector from './components/SkinSelector';
 import GiftShop from './components/GiftShop';
+import FriendsLobby from './components/FriendsLobby';
+import MPLobby from './components/MPLobby';
+import MPGameView from './components/MPGameView';
 
 const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
@@ -21,22 +24,19 @@ const App: React.FC = () => {
     });
     const [unlockedSkins, setUnlockedSkins] = useState<string[]>(['s1']);
     const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
+    const [activeChallenge, setActiveChallenge] = useState<MPChallenge | null>(null);
+    const [opponentData, setOpponentData] = useState<{username: string, skinId: string} | null>(null);
 
-    // Salvataggio automatico ogni volta che cambiano le stats o le skin
+    // Periodo natalizio attivo
+    const isChristmasSeason = true;
+
+    // Salvataggio automatico
     useEffect(() => {
-        if (stats.username && stats.username !== 'Guest') {
-            const saveData = {
-                stats,
-                unlockedSkins
-            };
+        if (stats.username && stats.username !== '' && stats.username !== 'Guest') {
+            const saveData = { stats, unlockedSkins };
             localStorage.setItem(`fd_user_data_${stats.username.toLowerCase()}`, JSON.stringify(saveData));
         }
     }, [stats, unlockedSkins]);
-
-    const isChristmasSeason = useMemo(() => {
-        const now = new Date();
-        return now.getMonth() === 11; 
-    }, []);
 
     const handleLogin = (username: string, secretCode: string) => {
         const lowerName = username.trim().toLowerCase();
@@ -51,33 +51,32 @@ const App: React.FC = () => {
         };
         let initialSkins: string[] = ['s1'];
 
-        // Se l'account esiste già, carichiamo i dati salvati
         if (savedRaw) {
             try {
                 const parsed = JSON.parse(savedRaw);
-                initialStats = { ...parsed.stats, username: username }; // Assicuriamo che l'username sia quello corretto
+                initialStats = { ...parsed.stats, username: username };
                 initialSkins = parsed.unlockedSkins;
-            } catch (e) {
-                console.error("Errore nel caricamento dei dati", e);
-            }
+            } catch (e) {}
         }
 
-        // Applichiamo i codici segreti sopra i dati caricati (se inseriti)
         const code = secretCode.trim().toUpperCase();
         if (code === 'ADMIN') {
             initialStats.isVip = true;
             initialStats.isPremium = true;
-            initialStats.gems += 2000; 
-        } else if (code === 'ERROR666') {
+            initialStats.gems += 5000;
+            if (!initialSkins.includes('s8')) initialSkins.push('s8');
+        } else if (code === 'VIP') {
             initialStats.isVip = true;
+            initialStats.gems += 1000;
+        } else if (code === 'PREMIUM') {
             initialStats.isPremium = true;
+            initialStats.gems += 500;
+        } else if (code === 'ERROR666') {
+            initialStats.isVip = true; 
+            initialStats.isPremium = true; 
             initialStats.selectedSkinId = 's666';
             if (!initialSkins.includes('s666')) initialSkins.push('s666');
             initialStats.gems += 666;
-        } else if (code === 'VIP') {
-            initialStats.isVip = true;
-            initialStats.isPremium = true;
-            initialStats.gems += 1000;
         }
 
         setStats(initialStats);
@@ -85,53 +84,32 @@ const App: React.FC = () => {
         setView(AppState.MENU);
     };
 
-    const handleGameOver = (success: boolean, gems: number) => {
-        setStats(prev => ({ ...prev, gems: prev.gems + gems }));
-        setView(AppState.LEVEL_SELECT);
-    };
-
-    const handlePurchase = (type: 'premium' | 'vip', cost: number) => {
-        if (stats.gems >= cost) {
+    const handleLevelEnd = (success: boolean, gems: number) => {
+        if (success) {
+            // Aggiunge le gemme raccolte + 100 di bonus vittoria
             setStats(prev => ({
                 ...prev,
-                gems: prev.gems - cost,
-                isPremium: type === 'premium' ? true : prev.isPremium,
-                isVip: type === 'vip' ? true : prev.isVip
+                gems: prev.gems + gems + 100
             }));
         }
-    };
-
-    const handleUnlockSkin = (skin: Skin, cost: number) => {
-        if (stats.gems >= cost) {
-            setStats(prev => ({ ...prev, gems: prev.gems - cost }));
-            setUnlockedSkins(prev => [...prev, skin.id]);
-        }
+        setView(AppState.LEVEL_SELECT);
     };
 
     return (
         <div className="h-screen w-screen bg-black overflow-hidden select-none relative">
-            {isChristmasSeason && (
-                <div className="absolute inset-0 pointer-events-none z-[100] opacity-30">
-                    <div className="snow-container"></div>
-                </div>
-            )}
+            {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
 
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
-            {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} />}
+            {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} isChristmas={isChristmasSeason} />}
             {view === AppState.LEVEL_SELECT && (
-                <LevelSelect 
-                    levels={LEVELS} 
-                    onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} 
-                    onBack={() => setView(AppState.MENU)} 
-                />
+                <LevelSelect levels={LEVELS} onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} onBack={() => setView(AppState.MENU)} />
             )}
             {view === AppState.GAME && currentLevel && (
                 <GameView 
                     level={currentLevel} 
                     skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} 
                     username={stats.username} 
-                    isVip={stats.isVip} 
-                    onEnd={handleGameOver} 
+                    onEnd={handleLevelEnd} 
                 />
             )}
             {view === AppState.SKINS && (
@@ -142,16 +120,24 @@ const App: React.FC = () => {
                     gems={stats.gems} 
                     stats={stats} 
                     isChristmasSeason={isChristmasSeason} 
-                    onUnlock={handleUnlockSkin} 
+                    onUnlock={(s, c) => { setStats(p => ({...p, gems: p.gems - c})); setUnlockedSkins(p => [...p, s.id]); }} 
                     onSelect={(id) => setStats(p => ({...p, selectedSkinId: id}))} 
                     onBack={() => setView(AppState.MENU)} 
                 />
             )}
             {view === AppState.SHOP && (
-                <Shop stats={stats} isChristmasSeason={isChristmasSeason} onPurchase={handlePurchase} onBack={() => setView(AppState.MENU)} />
+                <Shop 
+                    stats={stats} 
+                    isChristmasSeason={isChristmasSeason} 
+                    onPurchase={(t, c) => setStats(p => ({...p, gems: p.gems - c, isPremium: t === 'premium' ? true : p.isPremium, isVip: t === 'vip' ? true : p.isVip}))} 
+                    onBack={() => setView(AppState.MENU)} 
+                />
             )}
             {view === AppState.GIFT_SHOP && (
                 <GiftShop onClaim={(a) => setStats(p => ({...p, gems: p.gems + a}))} onBack={() => setView(AppState.MENU)} />
+            )}
+            {view === AppState.FRIENDS_LOBBY && (
+                <FriendsLobby currentUser={stats.username} isVip={stats.isVip} onBack={() => setView(AppState.MENU)} onChallenge={() => {}} />
             )}
         </div>
     );

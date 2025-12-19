@@ -24,6 +24,8 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
 
     return (
         <div className={`flex flex-col items-center h-full w-full p-4 md:p-8 overflow-y-auto relative pb-32 ${isChristmasSeason ? 'bg-gradient-to-b from-red-950/30 to-black' : 'bg-black'}`}>
+            {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
+            
             <div className="w-full max-w-6xl flex justify-between items-center mb-8 sticky top-0 bg-black/95 backdrop-blur-xl py-6 z-[60] border-b border-white/10 rounded-b-[2rem] px-6">
                 <button onClick={onBack} className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl text-white font-bold transition-all text-xs md:text-sm border border-white/5">
                     <i className="fas fa-arrow-left mr-2"></i> Menu
@@ -42,7 +44,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8 w-full max-w-6xl mt-6">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 md:gap-8 w-full max-w-6xl mt-6 z-10">
                 {visibleSkins.map((skin) => {
                     const isUnlocked = unlockedSkins.includes(skin.id);
                     const isSelected = selectedSkinId === skin.id;
@@ -104,7 +106,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                                 >
                                     {hasRequiredTier ? (
                                         <>
-                                            {isChristmasSeason && <span className="text-[9px] line-through opacity-50 mb-0.5">{skin.cost} Gemme</span>}
+                                            {isChristmasSeason && skin.cost > 0 && <span className="text-[9px] line-through opacity-50 mb-0.5">{skin.cost} Gemme</span>}
                                             <span>{discountedCost} Gemme</span>
                                         </>
                                     ) : (
@@ -120,7 +122,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                 })}
             </div>
             
-            <div className="mt-16 text-center text-gray-600 max-w-lg">
+            <div className="mt-16 text-center text-gray-600 max-w-lg z-10">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-2">Collezionale Tutte</p>
                 <p className="text-[9px] italic">Alcune skin sono sbloccabili solo con il grado VIP o tramite codici segreti speciali.</p>
             </div>

@@ -20,12 +20,15 @@ const Shop: React.FC<Props> = ({ stats, isChristmasSeason, onPurchase, onBack })
     return (
         <div className={`flex flex-col items-center h-full w-full p-4 md:p-8 overflow-y-auto relative pb-20 ${isChristmasSeason ? 'bg-gradient-to-b from-red-950 to-black' : 'bg-black'}`}>
             {isChristmasSeason && (
-                <div className="absolute top-0 w-full text-center bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black py-3 uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-lg z-[60] border-b-2 border-yellow-400/30">
-                    <i className="fas fa-snowflake mr-2"></i> SALDI DI NATALE: -25% SU TUTTO IL CATALOGO! <i className="fas fa-gift ml-2"></i>
-                </div>
+                <>
+                    <div className="snow-container pointer-events-none z-0"></div>
+                    <div className="absolute top-0 w-full text-center bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black py-3 uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-lg z-[60] border-b-2 border-yellow-400/30">
+                        <i className="fas fa-snowflake mr-2"></i> SALDI DI NATALE: -25% SU TUTTO IL CATALOGO! <i className="fas fa-gift ml-2"></i>
+                    </div>
+                </>
             )}
 
-            <div className="w-full max-w-6xl flex justify-between items-center mb-8 mt-12">
+            <div className="w-full max-w-6xl flex justify-between items-center mb-8 mt-12 z-10">
                 <button 
                     onClick={onBack}
                     className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl text-white font-bold transition-all transform active:scale-95 text-xs md:text-base border border-white/5"
@@ -43,7 +46,7 @@ const Shop: React.FC<Props> = ({ stats, isChristmasSeason, onPurchase, onBack })
                 <div className="w-10"></div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 w-full max-w-5xl mt-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 w-full max-w-5xl mt-4 z-10">
                 {/* Premium Card */}
                 <div className={`relative overflow-hidden p-10 rounded-[3rem] border-2 transition-all duration-500 ${
                     stats.isPremium ? 'border-purple-500 bg-purple-950/40 shadow-[0_0_50px_rgba(168,85,247,0.2)]' : 'border-white/10 bg-gray-900/40 backdrop-blur-md'
@@ -155,7 +158,7 @@ const Shop: React.FC<Props> = ({ stats, isChristmasSeason, onPurchase, onBack })
                 </div>
             </div>
             
-            <p className="mt-12 text-gray-600 text-[10px] uppercase font-bold tracking-widest text-center max-w-sm">
+            <p className="mt-12 text-gray-600 text-[10px] uppercase font-bold tracking-widest text-center max-w-sm z-10">
                 * Gli abbonamenti sono permanenti e legati al tuo username. Non dimenticarlo!
             </p>
         </div>
