@@ -9,76 +9,89 @@ interface Props {
 
 const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
     return (
-        <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black font-['Orbitron']">
-            <div className="absolute top-8 left-8">
-                <div className="text-gray-400 text-sm mb-1 uppercase tracking-tighter">Bentornato,</div>
-                <div className="text-2xl font-black text-white flex items-center gap-2">
+        <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black font-['Orbitron'] p-4 overflow-hidden">
+            {/* Header Profilo - Più compatto su mobile */}
+            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10">
+                <div className="text-gray-500 text-[10px] md:text-sm mb-0 md:mb-1 uppercase tracking-tighter">Bentornato,</div>
+                <div className="text-lg md:text-2xl font-black text-white flex items-center gap-2">
                     {stats.username}
-                    {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs"></i>}
+                    {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
                 </div>
             </div>
 
-            <div className="flex flex-col md:flex-row gap-6 items-center justify-center scale-110">
-                {/* Play Button */}
+            {/* Grid Pulsanti - Rimossa la scala fissa per evitare bug di tocco */}
+            <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center justify-center w-full max-w-4xl">
+                
+                {/* Tasto Gioca - Area di tocco ottimizzata e feedback visivo migliorato */}
                 <button 
                     onClick={() => onNavigate(AppState.LEVEL_SELECT)}
-                    className="group relative flex flex-col items-center"
+                    className="group relative flex flex-col items-center touch-manipulation"
                 >
-                    <div className="w-40 h-40 bg-blue-600 rounded-3xl flex items-center justify-center text-6xl shadow-2xl shadow-blue-500/50 transform transition-all group-hover:scale-110 group-active:scale-95 group-hover:bg-blue-500">
-                        <i className="fas fa-play text-white ml-2"></i>
+                    <div className="w-32 h-32 md:w-48 md:h-48 bg-blue-600 rounded-[2rem] md:rounded-[3rem] flex items-center justify-center text-5xl md:text-7xl shadow-[0_0_50px_rgba(37,99,235,0.4)] transform transition-all duration-300 group-hover:scale-105 group-active:scale-90 group-hover:bg-blue-500 border-4 border-white/10">
+                        <i className="fas fa-play text-white ml-2 drop-shadow-lg"></i>
                     </div>
-                    <span className="mt-4 font-black text-white uppercase tracking-widest text-lg group-hover:text-blue-400 transition-colors">Gioca</span>
+                    <div className="mt-6 flex flex-col items-center">
+                        <span className="font-black text-white uppercase tracking-[0.3em] text-lg md:text-2xl group-hover:text-blue-400 transition-colors drop-shadow-md">Gioca</span>
+                        <div className="h-1 w-8 bg-blue-500 mt-1 rounded-full group-hover:w-16 transition-all"></div>
+                    </div>
                 </button>
 
-                <div className="flex flex-col gap-6">
-                    {/* Friends Button (NUOVO) */}
-                    <button 
-                        onClick={() => onNavigate(AppState.FRIENDS_LOBBY)}
-                        className="group relative flex items-center gap-4 bg-blue-700 hover:bg-blue-600 px-6 py-4 rounded-2xl shadow-xl shadow-blue-500/30 transition-all hover:scale-105 active:scale-95"
-                    >
-                        <i className="fas fa-users text-2xl text-white"></i>
-                        <span className="font-black text-white uppercase tracking-widest">Sfida Amici</span>
-                    </button>
+                {/* Colonna Secondaria */}
+                <div className="flex flex-col gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
+                    
+                    <div className="flex flex-row md:flex-col gap-4">
+                        {/* Friends Button */}
+                        <button 
+                            onClick={() => onNavigate(AppState.FRIENDS_LOBBY)}
+                            className="flex-1 group relative flex items-center justify-center md:justify-start gap-4 bg-blue-700 hover:bg-blue-600 px-6 py-4 rounded-2xl shadow-xl transition-all hover:translate-x-1 active:scale-95 border-b-4 border-blue-900"
+                        >
+                            <i className="fas fa-users text-xl text-white"></i>
+                            <span className="font-black text-white uppercase tracking-widest text-xs md:text-sm">Sfida Amici</span>
+                        </button>
 
-                    {/* Gift Shop Button */}
-                    <button 
-                        onClick={() => onNavigate(AppState.GIFT_SHOP)}
-                        className="group relative flex items-center gap-4 bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl shadow-xl shadow-red-500/30 transition-all hover:scale-105 active:scale-95"
-                    >
-                        <i className="fas fa-gift text-2xl text-white animate-bounce"></i>
-                        <span className="font-black text-white uppercase tracking-widest">Regali</span>
-                    </button>
+                        {/* Gift Shop Button */}
+                        <button 
+                            onClick={() => onNavigate(AppState.GIFT_SHOP)}
+                            className="flex-1 group relative flex items-center justify-center md:justify-start gap-4 bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl shadow-xl transition-all hover:translate-x-1 active:scale-95 border-b-4 border-red-900"
+                        >
+                            <i className="fas fa-gift text-xl text-white animate-bounce"></i>
+                            <span className="font-black text-white uppercase tracking-widest text-xs md:text-sm">Regali</span>
+                        </button>
+                    </div>
 
-                    <div className="flex gap-6">
+                    <div className="flex gap-4">
                         {/* Skins Button */}
                         <button 
                             onClick={() => onNavigate(AppState.SKINS)}
-                            className="group relative flex flex-col items-center"
+                            className="flex-1 group relative flex flex-col items-center bg-gray-900/50 p-4 rounded-2xl border border-white/5 hover:border-emerald-500 transition-all active:scale-95"
                         >
-                            <div className="w-20 h-20 bg-emerald-600 rounded-2xl flex items-center justify-center text-3xl shadow-xl shadow-emerald-500/40 transform transition-all group-hover:scale-110 group-active:scale-95 group-hover:bg-emerald-500">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl shadow-lg transform transition-all group-hover:rotate-12">
                                 <i className="fas fa-tshirt text-white"></i>
                             </div>
-                            <span className="mt-2 font-bold text-gray-400 uppercase tracking-widest text-[10px] group-hover:text-emerald-400 transition-colors">Skins</span>
+                            <span className="mt-3 font-bold text-gray-400 uppercase tracking-widest text-[9px]">Skins</span>
                         </button>
 
                         {/* Shop Button */}
                         <button 
                             onClick={() => onNavigate(AppState.SHOP)}
-                            className="group relative flex flex-col items-center"
+                            className="flex-1 group relative flex flex-col items-center bg-gray-900/50 p-4 rounded-2xl border border-white/5 hover:border-purple-500 transition-all active:scale-95"
                         >
-                            <div className="w-20 h-20 bg-purple-600 rounded-2xl flex items-center justify-center text-3xl shadow-xl shadow-purple-500/40 transform transition-all group-hover:scale-110 group-active:scale-95 group-hover:bg-purple-500">
+                            <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-600 rounded-xl flex items-center justify-center text-2xl shadow-lg transform transition-all group-hover:-rotate-12">
                                 <i className="fas fa-shopping-cart text-white"></i>
                             </div>
-                            <span className="mt-2 font-bold text-gray-400 uppercase tracking-widest text-[10px] group-hover:text-purple-400 transition-colors">Shop</span>
+                            <span className="mt-3 font-bold text-gray-400 uppercase tracking-widest text-[9px]">Shop</span>
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div className="mt-24 max-w-lg text-center px-4">
-                <div className="text-xs text-gray-600 uppercase mb-2 tracking-[0.5em]">Novità</div>
-                <div className="bg-white/5 border border-white/10 p-4 rounded-xl">
-                    <p className="text-gray-300 text-sm">Passa dal <span className="text-red-500 font-black">GIFT SHOP</span> per riscuotere le tue gemme giornaliere!</p>
+            {/* News - Nascosta su mobile molto piccolo per non affollare */}
+            <div className="mt-12 md:mt-24 max-w-lg text-center px-4 hidden sm:block">
+                <div className="text-[10px] text-gray-600 uppercase mb-3 tracking-[0.4em]">Aggiornamenti Live</div>
+                <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
+                    <p className="text-gray-400 text-xs italic">
+                        Usa il codice <span className="text-indigo-400 font-black">SEBASTIAN</span> nel login per la sfida estrema!
+                    </p>
                 </div>
             </div>
         </div>
