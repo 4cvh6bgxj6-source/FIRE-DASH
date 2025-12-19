@@ -1,3 +1,4 @@
+
 import { Level, Skin } from './types';
 
 export const LEVELS: Level[] = [
@@ -18,22 +19,38 @@ export const SKINS: Skin[] = [
     { id: 's4', name: 'Golden God', color: '#f59e0b', cost: 500, unlocked: false, icon: 'fa-crown', requiredTier: 'free' },
     { id: 's-man', name: 'Omino Salterino', color: '#ffffff', cost: 200, unlocked: false, icon: 'fa-walking', requiredTier: 'free' },
     
-    // Exclusive Premium Skins
+    // Premium
     { id: 's6', name: 'Neon Spark', color: '#ff00ff', cost: 0, unlocked: false, icon: 'fa-bolt', requiredTier: 'premium' },
     { id: 's9', name: 'Matrix Runner', color: '#003b00', cost: 300, unlocked: false, icon: 'fa-terminal', requiredTier: 'premium' },
     
-    // Exclusive VIP Skins
+    // VIP
     { id: 's7', name: 'Gold Void', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
     { id: 's10', name: 'Fire Lord', color: '#ff4500', cost: 450, unlocked: false, icon: 'fa-fire', requiredTier: 'vip' },
     
-    // SPECIAL ADMIN SKIN
-    { id: 's8', name: 'ADMIN GLITCH', color: '#00ff41', cost: 0, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
+    // ADMIN GLITCH: Richiede VIP e 999 Gemme
+    { 
+        id: 's8', 
+        name: 'ADMIN GLITCH', 
+        color: '#00ff41', 
+        cost: 999, 
+        unlocked: false, 
+        icon: 'fa-user-secret', 
+        requiredTier: 'vip', 
+        isGlitched: true 
+    },
 
-    // SECRET ERROR 666 SKIN
-    { id: 's666', name: 'ERROR 666', color: '#7f0000', cost: 0, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true },
-
-    // SEBASTIAN SECRET SKIN
-    { id: 's-seba', name: 'SEBASTIAN GHOST', color: '#6366f1', cost: 0, unlocked: false, icon: 'fa-ghost', requiredTier: 'free', isGlitched: true }
+    // ERROR 666: Skin Segreta (Codice)
+    { 
+        id: 's666', 
+        name: 'ERROR 666', 
+        color: '#ff0000', 
+        cost: 0, 
+        unlocked: false, 
+        icon: 'fa-skull', 
+        requiredTier: 'vip', 
+        isGlitched: true, 
+        canFly: true 
+    }
 ];
 
 export const GAME_GRAVITY = 0.6;

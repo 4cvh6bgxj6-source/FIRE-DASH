@@ -13,101 +13,151 @@ const Shop: React.FC<Props> = ({ stats, isChristmasSeason, onPurchase, onBack })
     const PREMIUM_ORIGINAL = 5000;
     const VIP_ORIGINAL = 10000;
     
+    // Sconto del 25% (moltiplicatore 0.75)
     const premiumCost = isChristmasSeason ? Math.floor(PREMIUM_ORIGINAL * 0.75) : PREMIUM_ORIGINAL;
     const vipCost = isChristmasSeason ? Math.floor(VIP_ORIGINAL * 0.75) : VIP_ORIGINAL;
 
     return (
-        <div className="flex flex-col items-center h-full w-full bg-black p-4 md:p-8 overflow-y-auto relative pb-20">
-            <div className="w-full max-w-6xl flex justify-between items-center mb-8">
+        <div className={`flex flex-col items-center h-full w-full p-4 md:p-8 overflow-y-auto relative pb-20 ${isChristmasSeason ? 'bg-gradient-to-b from-red-950 to-black' : 'bg-black'}`}>
+            {isChristmasSeason && (
+                <div className="absolute top-0 w-full text-center bg-gradient-to-r from-red-600 via-red-500 to-red-600 text-white font-black py-3 uppercase tracking-[0.3em] text-[10px] md:text-xs shadow-lg z-[60] border-b-2 border-yellow-400/30">
+                    <i className="fas fa-snowflake mr-2"></i> SALDI DI NATALE: -25% SU TUTTO IL CATALOGO! <i className="fas fa-gift ml-2"></i>
+                </div>
+            )}
+
+            <div className="w-full max-w-6xl flex justify-between items-center mb-8 mt-12">
                 <button 
                     onClick={onBack}
-                    className="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl text-white font-bold transition-all transform active:scale-95 text-xs md:text-base"
+                    className="bg-white/10 hover:bg-white/20 px-6 py-3 rounded-2xl text-white font-bold transition-all transform active:scale-95 text-xs md:text-base border border-white/5"
                 >
                     <i className="fas fa-arrow-left mr-2"></i> Menu
                 </button>
                 <div className="text-center">
-                    <h2 className="text-2xl md:text-5xl font-black italic text-white uppercase tracking-tighter">Shop Membership</h2>
+                    <h2 className="text-3xl md:text-6xl font-black italic text-white uppercase tracking-tighter flex items-center gap-6 justify-center">
+                        {isChristmasSeason && <i className="fas fa-holly-berry text-red-500"></i>}
+                        Shop Membership
+                        {isChristmasSeason && <i className="fas fa-holly-berry text-red-500"></i>}
+                    </h2>
+                    <p className="text-gray-500 text-[10px] uppercase font-bold tracking-[0.4em] mt-2">Acquista Potenziamenti Unici</p>
                 </div>
                 <div className="w-10"></div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 w-full max-w-4xl">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 w-full max-w-5xl mt-4">
                 {/* Premium Card */}
-                <div className={`relative overflow-hidden p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${
-                    stats.isPremium ? 'border-purple-500 bg-purple-900/20' : 'border-white/10 bg-gray-900'
+                <div className={`relative overflow-hidden p-10 rounded-[3rem] border-2 transition-all duration-500 ${
+                    stats.isPremium ? 'border-purple-500 bg-purple-950/40 shadow-[0_0_50px_rgba(168,85,247,0.2)]' : 'border-white/10 bg-gray-900/40 backdrop-blur-md'
                 }`}>
-                    <div className="mb-6">
-                        <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">PREMIUM</h3>
-                        <div className="h-1.5 w-12 bg-purple-600 rounded-full mt-1"></div>
+                    {isChristmasSeason && !stats.isPremium && (
+                        <div className="absolute -top-2 -right-10 bg-red-600 text-white font-black px-12 py-4 rounded-full text-[12px] uppercase rotate-12 shadow-xl border-2 border-white/20 z-10">
+                            -25% NATALE
+                        </div>
+                    )}
+                    
+                    <div className="mb-8">
+                        <div className="flex items-center gap-4 mb-2">
+                            <i className="fas fa-gem text-purple-400 text-2xl"></i>
+                            <h3 className="text-4xl font-black text-white italic uppercase tracking-tighter">PREMIUM</h3>
+                        </div>
+                        <div className="h-2 w-20 bg-gradient-to-r from-purple-600 to-transparent rounded-full"></div>
                     </div>
 
-                    <ul className="space-y-4 mb-10 text-xs md:text-sm">
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <i className="fas fa-check text-purple-400"></i>
-                            Skin Esclusiva
+                    <ul className="space-y-5 mb-12">
+                        <li className="flex items-center gap-4 text-gray-300 font-medium">
+                            <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-check text-purple-400"></i>
+                            </div>
+                            Skin "Neon Spark" Esclusiva
                         </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <i className="fas fa-check text-purple-400"></i>
+                        <li className="flex items-center gap-4 text-gray-300 font-medium">
+                            <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-check text-purple-400"></i>
+                            </div>
                             Tutte le Skin Base Sbloccate
                         </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <i className="fas fa-check text-purple-400"></i>
+                        <li className="flex items-center gap-4 text-gray-300 font-medium">
+                            <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-check text-purple-400"></i>
+                            </div>
                             +50% Gemme ogni Gara
                         </li>
                     </ul>
 
                     {stats.isPremium ? (
-                        <div className="w-full bg-purple-600 text-white font-black py-4 rounded-2xl text-center uppercase tracking-widest text-xs">Già Attivo</div>
+                        <div className="w-full bg-purple-600/30 text-purple-300 border border-purple-500/50 font-black py-5 rounded-3xl text-center uppercase tracking-widest text-sm">Abbonamento Attivo</div>
                     ) : (
                         <button 
                             onClick={() => onPurchase('premium', premiumCost)}
-                            className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-purple-500/20 transform active:scale-95"
+                            className="w-full bg-gradient-to-br from-purple-500 to-indigo-700 text-white font-black py-5 rounded-3xl flex flex-col items-center justify-center gap-1 shadow-2xl shadow-purple-500/30 transform active:scale-95 hover:brightness-110 transition-all border-b-4 border-purple-900"
                         >
-                            <span className="text-lg">{premiumCost} Gemme</span>
+                            {isChristmasSeason && <span className="text-xs line-through opacity-60 font-bold">{PREMIUM_ORIGINAL} Gemme</span>}
+                            <span className="text-xl tracking-wider">{premiumCost} Gemme</span>
                         </button>
                     )}
                 </div>
 
                 {/* VIP Card */}
-                <div className={`relative overflow-hidden p-8 rounded-[2.5rem] border-2 transition-all duration-500 ${
-                    stats.isVip ? 'border-yellow-500 bg-yellow-900/20' : 'border-white/10 bg-gray-900'
+                <div className={`relative overflow-hidden p-10 rounded-[3rem] border-2 transition-all duration-500 ${
+                    stats.isVip ? 'border-yellow-500 bg-yellow-950/40 shadow-[0_0_50px_rgba(234,179,8,0.2)]' : 'border-white/10 bg-gray-900/40 backdrop-blur-md'
                 }`}>
-                    <div className="mb-6">
-                        <h3 className="text-3xl font-black text-white italic uppercase tracking-tighter">VIP</h3>
-                        <div className="h-1.5 w-12 bg-yellow-600 rounded-full mt-1"></div>
+                    {isChristmasSeason && !stats.isVip && (
+                        <div className="absolute -top-2 -right-10 bg-red-600 text-white font-black px-12 py-4 rounded-full text-[12px] uppercase rotate-12 shadow-xl border-2 border-white/20 z-10">
+                            SPECIAL PRICE
+                        </div>
+                    )}
+
+                    <div className="mb-8">
+                        <div className="flex items-center gap-4 mb-2">
+                            <i className="fas fa-crown text-yellow-400 text-2xl animate-bounce"></i>
+                            <h3 className="text-4xl font-black text-white italic uppercase tracking-tighter">VIP</h3>
+                        </div>
+                        <div className="h-2 w-20 bg-gradient-to-r from-yellow-500 to-transparent rounded-full"></div>
                     </div>
 
-                    <ul className="space-y-4 mb-10 text-xs md:text-sm">
-                        <li className="flex items-center gap-3 text-yellow-400 font-bold">
-                            <i className="fas fa-palette"></i>
-                            Nome Arcobaleno
+                    <ul className="space-y-5 mb-12">
+                        <li className="flex items-center gap-4 text-yellow-400 font-black tracking-wide">
+                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-star text-yellow-400"></i>
+                            </div>
+                            Nome Arcobaleno in Chat/Menu
                         </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <i className="fas fa-check text-yellow-400"></i>
+                        <li className="flex items-center gap-4 text-gray-300 font-medium">
+                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-check text-yellow-400"></i>
+                            </div>
                             Tutte le Skin Premium incluse
                         </li>
-                        <li className="flex items-center gap-3 text-gray-300">
-                            <i className="fas fa-check text-yellow-400"></i>
-                            X2 Gemme (Double reward)
+                        <li className="flex items-center gap-4 text-gray-300 font-medium">
+                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-check text-yellow-400"></i>
+                            </div>
+                            X2 Gemme (Double reward!)
                         </li>
-                        <li className="flex items-center gap-3 text-yellow-200">
-                            <i className="fas fa-star"></i>
-                            Skin ADMIN & ERROR 666
+                        <li className="flex items-center gap-4 text-yellow-200 font-bold">
+                            <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-lock-open text-red-400"></i>
+                            </div>
+                            Accesso Skin ADMIN & ERROR 666
                         </li>
                     </ul>
 
                     {stats.isVip ? (
-                        <div className="w-full bg-yellow-600 text-black font-black py-4 rounded-2xl text-center uppercase tracking-widest text-xs">Abbonamento VIP Attivo</div>
+                        <div className="w-full bg-yellow-600/30 text-yellow-300 border border-yellow-500/50 font-black py-5 rounded-3xl text-center uppercase tracking-widest text-sm italic">Status: LEGGENDARIO</div>
                     ) : (
                         <button 
                             onClick={() => onPurchase('vip', vipCost)}
-                            className="w-full bg-gradient-to-r from-yellow-500 to-orange-500 text-black font-black py-4 rounded-2xl flex flex-col items-center justify-center gap-1 shadow-lg shadow-yellow-500/20 transform active:scale-95"
+                            className="w-full bg-gradient-to-br from-yellow-400 via-orange-500 to-yellow-600 text-black font-black py-5 rounded-3xl flex flex-col items-center justify-center gap-1 shadow-2xl shadow-yellow-500/30 transform active:scale-95 hover:brightness-110 transition-all border-b-4 border-yellow-900"
                         >
-                            <span className="text-lg">{vipCost} Gemme</span>
+                            {isChristmasSeason && <span className="text-xs line-through opacity-60 font-bold">{VIP_ORIGINAL} Gemme</span>}
+                            <span className="text-xl tracking-wider">{vipCost} Gemme</span>
                         </button>
                     )}
                 </div>
             </div>
+            
+            <p className="mt-12 text-gray-600 text-[10px] uppercase font-bold tracking-widest text-center max-w-sm">
+                * Gli abbonamenti sono permanenti e legati al tuo username. Non dimenticarlo!
+            </p>
         </div>
     );
 };

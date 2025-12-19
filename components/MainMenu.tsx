@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { AppState, UserStats } from '../types';
 
@@ -20,15 +21,25 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
             {/* Header Profilo */}
             <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10 flex flex-col gap-3">
                 <div className="flex flex-col gap-0.5">
-                    <div className="text-gray-500 text-[10px] md:text-sm uppercase tracking-tighter">Bentornato,</div>
-                    <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
-                        {stats.username}
-                        {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
+                    <div className="text-gray-500 text-[10px] md:text-sm uppercase tracking-tighter font-bold">Bentornato,</div>
+                    <div className="flex items-center gap-3">
+                        <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
+                            {stats.username}
+                            {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
+                        </div>
+                        
+                        {/* Contatore Gemme Accanto al Nome */}
+                        <div className="flex items-center gap-2 bg-blue-900/30 border border-blue-500/30 px-3 py-1 rounded-full shadow-[0_0_15px_rgba(59,130,246,0.2)] animate-in fade-in slide-in-from-left duration-500">
+                            <i className="fas fa-gem text-blue-400 text-xs md:text-sm animate-pulse"></i>
+                            <span className="text-white font-black text-xs md:text-sm tracking-tighter">
+                                {stats.gems.toLocaleString()}
+                            </span>
+                        </div>
                     </div>
                 </div>
                 <button 
                     onClick={forceUpdate}
-                    className="bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 px-4 py-2 rounded-xl text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-blue-500/10 group"
+                    className="bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 px-4 py-2 rounded-xl text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-blue-500/10 group w-fit"
                 >
                     <i className="fas fa-sync-alt group-hover:rotate-180 transition-transform duration-500"></i> Aggiorna Sito
                 </button>
