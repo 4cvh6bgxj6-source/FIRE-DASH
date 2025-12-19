@@ -13,7 +13,6 @@ import GiftShop from './components/GiftShop';
 const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
     
-    // Stats start empty and are loaded upon login based on username
     const [stats, setStats] = useState<UserStats>({
         username: '',
         gems: 0,
@@ -24,13 +23,11 @@ const App: React.FC = () => {
     
     const [unlockedSkins, setUnlockedSkins] = useState<string[]>(['s1']);
 
-    // Determine if Christmas discount is active (Whole month of December)
     const isChristmasSeason = useMemo(() => {
         const now = new Date();
-        return now.getMonth() === 11; // 11 is December
+        return now.getMonth() === 11;
     }, []);
 
-    // Persist stats changes ONLY when a user is logged in
     useEffect(() => {
         if (stats.username) {
             const userData = {
@@ -49,12 +46,10 @@ const App: React.FC = () => {
         let initialSkins: string[];
 
         if (savedDataStr) {
-            // Recognize account and load data
             const savedData = JSON.parse(savedDataStr);
             initialStats = { ...savedData.stats, username: username.trim() };
             initialSkins = savedData.unlockedSkins || ['s1'];
         } else {
-            // New account
             initialStats = {
                 username: username.trim(),
                 gems: 0,
@@ -65,7 +60,6 @@ const App: React.FC = () => {
             initialSkins = ['s1'];
         }
 
-        // Apply secret codes if provided
         const normalizedCode = secretCode.trim().toUpperCase();
         if (normalizedCode === 'VIP') {
             initialStats.isVip = true;
@@ -74,15 +68,15 @@ const App: React.FC = () => {
         } else if (normalizedCode === 'PREMIUM') {
             initialStats.isPremium = true;
             initialStats.gems += 500;
-        } else if (normalizedCode === 'ERROR 666') {
-            // Sblocco immediato della skin segreta tramite codice
+        } else if (normalizedCode === 'ERROR 666' || normalizedCode === 'ERROR666') {
+            // Sblocco immediato skin segreta
             initialStats.isVip = true;
             initialStats.isPremium = true;
             initialStats.selectedSkinId = 's666';
             if (!initialSkins.includes('s666')) {
                 initialSkins.push('s666');
             }
-            alert("⚠️ SISTEMA COMPROMESSO: ERROR 666 RILEVATO ⚠️");
+            alert("⚠️ SYSTEM FAILURE: ERROR 666 INJECTED ⚠️");
         }
 
         setStats(initialStats);
@@ -99,17 +93,12 @@ const App: React.FC = () => {
 
     const handleGameOver = (success: boolean, gemsCollected: number) => {
         let totalReward = gemsCollected;
-        
-        // Base completion bonus
-        if (success) {
-            totalReward += 50;
-        }
+        if (success) totalReward += 50;
 
-        // Membership Bonuses
         if (stats.isVip) {
-            totalReward *= 2; // 100% bonus
+            totalReward *= 2;
         } else if (stats.isPremium) {
-            totalReward = Math.floor(totalReward * 1.5); // 50% bonus
+            totalReward = Math.floor(totalReward * 1.5);
         }
 
         setStats(prev => ({ ...prev, gems: prev.gems + totalReward }));
@@ -124,7 +113,7 @@ const App: React.FC = () => {
                 isPremium: type === 'premium' ? true : prev.isPremium,
                 isVip: type === 'vip' ? true : prev.isVip
             }));
-            alert(`Hai acquistato ${type.toUpperCase()}!`);
+            alert(`Acquistato: ${type.toUpperCase()}`);
         } else {
             alert('Gemme insufficienti!');
         }
@@ -135,7 +124,7 @@ const App: React.FC = () => {
             setStats(prev => ({ ...prev, gems: prev.gems - cost }));
             setUnlockedSkins(prev => [...prev, skin.id]);
         } else {
-            alert('Gemme insufficienti per sbloccare questa skin!');
+            alert('Gemme insufficienti!');
         }
     };
 
@@ -212,7 +201,6 @@ const App: React.FC = () => {
                 />
             )}
             
-            {/* HUD Overlay */}
             {view !== AppState.LOGIN && view !== AppState.GAME && (
                 <div className="absolute top-4 right-4 flex items-center gap-4 bg-gray-900/80 px-4 py-2 rounded-full border border-gray-700 z-50">
                     <div className="flex items-center gap-2 text-blue-400 font-bold">
@@ -221,12 +209,6 @@ const App: React.FC = () => {
                     </div>
                     {stats.isVip && <span className="text-yellow-400 text-xs font-black px-2 py-1 bg-yellow-900/30 rounded border border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]">VIP</span>}
                     {stats.isPremium && !stats.isVip && <span className="text-purple-400 text-xs font-black px-2 py-1 bg-purple-900/30 rounded border border-purple-500">PREMIUM</span>}
-                    {isChristmasSeason && (
-                        <div className="flex items-center gap-1 text-red-500 font-black text-[10px] bg-red-900/20 px-2 py-1 rounded border border-red-500/50 animate-pulse">
-                            <i className="fas fa-snowflake"></i>
-                            SALE -25%
-                        </div>
-                    )}
                 </div>
             )}
         </div>

@@ -22,7 +22,7 @@ export const SKINS: Skin[] = [
     { id: 's7', name: 'Gold Void', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
     { id: 's10', name: 'Fire Lord', color: '#ff4500', cost: 450, unlocked: false, icon: 'fa-fire', requiredTier: 'vip' },
     
-    // SPECIAL ADMIN SKIN - BUGGATA
+    // SPECIAL ADMIN SKIN
     { id: 's8', name: 'ADMIN GLITCH', color: '#00ff41', cost: 999, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
 
     // SECRET ERROR 666 SKIN
