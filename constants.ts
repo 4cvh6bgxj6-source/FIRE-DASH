@@ -1,4 +1,3 @@
-
 import { Level, Skin } from './types';
 
 export const LEVELS: Level[] = [

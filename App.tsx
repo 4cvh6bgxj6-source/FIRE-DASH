@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
 import { AppState, UserStats, Level, Skin } from './types';
 import { LEVELS, SKINS } from './constants';
@@ -16,6 +15,7 @@ const App: React.FC = () => {
     const [opponent, setOpponent] = useState<string | null>(null);
     const [incomingInvite, setIncomingInvite] = useState<string | null>(null);
     const [isSebastianMode, setIsSebastianMode] = useState(false);
+    const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
     
     const [stats, setStats] = useState<UserStats>({
         username: '',
@@ -32,26 +32,26 @@ const App: React.FC = () => {
         return now.getMonth() === 11;
     }, []);
 
-    // Sincronizzazione automatica skin VIP e Admin
+    // Sincronizzazione automatica delle skin VIP/Admin se l'utente ha il tier richiesto
     useEffect(() => {
         if (stats.username) {
-            let currentUnlocked = [...unlockedSkins];
-            let changed = false;
+            setUnlockedSkins(prev => {
+                const current = new Set(prev);
+                let changed = false;
 
-            SKINS.forEach(skin => {
-                const needsUnlock = 
-                    (skin.requiredTier === 'vip' && stats.isVip) || 
-                    (skin.requiredTier === 'premium' && (stats.isPremium || stats.isVip));
-                
-                if (needsUnlock && !currentUnlocked.includes(skin.id)) {
-                    currentUnlocked.push(skin.id);
-                    changed = true;
-                }
+                SKINS.forEach(skin => {
+                    const shouldBeUnlocked = 
+                        (skin.requiredTier === 'vip' && stats.isVip) || 
+                        (skin.requiredTier === 'premium' && (stats.isPremium || stats.isVip));
+                    
+                    if (shouldBeUnlocked && !current.has(skin.id)) {
+                        current.add(skin.id);
+                        changed = true;
+                    }
+                });
+
+                return changed ? Array.from(current) : prev;
             });
-
-            if (changed) {
-                setUnlockedSkins(currentUnlocked);
-            }
         }
     }, [stats.isVip, stats.isPremium, stats.username]);
 
@@ -109,7 +109,7 @@ const App: React.FC = () => {
             initialStats.isPremium = true;
             initialStats.selectedSkinId = 's666';
             if (!initialSkins.includes('s666')) initialSkins.push('s666');
-            alert("⚠️ SYSTEM FAILURE: ERROR 666 DETECTED ⚠️");
+            alert("⚠️ SYSTEM FAILURE: ERROR 666 INJECTED ⚠️");
         } else if (normalizedCode === 'SEBASTIAN') {
             initialStats.selectedSkinId = 's-seba';
             if (!initialSkins.includes('s-seba')) initialSkins.push('s-seba');
@@ -129,6 +129,7 @@ const App: React.FC = () => {
 
         setStats(prev => ({ ...prev, gems: prev.gems + totalReward }));
         setOpponent(null); 
+        setCurrentLevel(null);
         setView(AppState.LEVEL_SELECT);
     };
 
@@ -140,7 +141,7 @@ const App: React.FC = () => {
                 isPremium: type === 'premium' ? true : prev.isPremium,
                 isVip: type === 'vip' ? true : prev.isVip
             }));
-            alert(`Grazie per il supporto! Sei ora ${type.toUpperCase()}`);
+            alert(`Complimenti! Sei ora ${type.toUpperCase()}`);
         } else {
             alert('Gemme insufficienti!');
         }
@@ -168,18 +169,22 @@ const App: React.FC = () => {
         setView(AppState.LEVEL_SELECT);
     };
 
+    const handleLevelSelect = (level: Level) => {
+        setCurrentLevel(level);
+        setView(AppState.GAME);
+    };
+
     return (
         <div className="h-screen w-screen bg-black overflow-hidden relative select-none">
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
             {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} />}
             {view === AppState.FRIENDS_LOBBY && <FriendsLobby currentUser={stats.username} isVip={stats.isVip} onBack={() => setView(AppState.MENU)} onChallenge={handleStartChallenge} />}
-            {view === AppState.LEVEL_SELECT && <LevelSelect levels={LEVELS} onSelect={(l) => { setView(AppState.GAME); setView(AppState.GAME); }} onBack={() => { setOpponent(null); setView(AppState.MENU); }} onSelectLevel={(l) => { window.currentLevel = l; setView(AppState.GAME); }} />}
-            {view === AppState.GAME && window.currentLevel && <GameView level={window.currentLevel} skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} username={stats.username} isVip={stats.isVip} onEnd={handleGameOver} isSebastianMode={isSebastianMode} />}
+            {view === AppState.LEVEL_SELECT && <LevelSelect levels={LEVELS} onSelectLevel={handleLevelSelect} onBack={() => { setOpponent(null); setView(AppState.MENU); }} />}
+            {view === AppState.GAME && currentLevel && <GameView level={currentLevel} skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} username={stats.username} isVip={stats.isVip} onEnd={handleGameOver} isSebastianMode={isSebastianMode} />}
             {view === AppState.SHOP && <Shop stats={stats} isChristmasSeason={isChristmasSeason} onPurchase={handlePurchase} onBack={() => setView(AppState.MENU)} />}
             {view === AppState.SKINS && <SkinSelector skins={SKINS} unlockedSkins={unlockedSkins} selectedSkinId={stats.selectedSkinId} gems={stats.gems} stats={stats} isChristmasSeason={isChristmasSeason} onUnlock={handleUnlockSkin} onSelect={handleSelectSkin} onBack={() => setView(AppState.MENU)} />}
             {view === AppState.GIFT_SHOP && <GiftShop onClaim={handleClaimGems} onBack={() => setView(AppState.MENU)} />}
             
-            {/* Overlay Profilo persistente fuori dai giochi */}
             {view !== AppState.LOGIN && view !== AppState.GAME && (
                 <div className="absolute top-4 right-4 flex items-center gap-3 bg-gray-900/90 px-4 py-2 rounded-full border border-gray-700 z-[70] shadow-xl">
                     <span className={`text-[10px] font-black uppercase tracking-widest ${stats.isVip ? 'rainbow-text' : 'text-gray-300'}`}>
@@ -194,8 +199,5 @@ const App: React.FC = () => {
         </div>
     );
 };
-
-// Hack per gestire il passaggio del livello senza troppi re-render
-declare global { interface Window { currentLevel: Level; } }
 
 export default App;

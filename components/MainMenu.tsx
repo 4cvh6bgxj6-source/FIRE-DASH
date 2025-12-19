@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { AppState, UserStats } from '../types';
 
@@ -9,14 +8,17 @@ interface Props {
 
 const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
     const forceUpdate = () => {
-        // Forza un refresh completo pulendo parte della cache se possibile (non standard ma aiuta reload)
-        window.location.href = window.location.origin + window.location.pathname + '?r=' + Date.now();
+        // Clear session storage as well to force a cleaner state
+        sessionStorage.clear();
+        const url = new URL(window.location.href);
+        url.searchParams.set('reload', Date.now().toString());
+        window.location.href = url.toString();
     };
 
     return (
         <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black font-['Orbitron'] p-4 overflow-hidden">
             {/* Header Profilo */}
-            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10 flex flex-col gap-2">
+            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10 flex flex-col gap-3">
                 <div className="flex flex-col gap-0.5">
                     <div className="text-gray-500 text-[10px] md:text-sm uppercase tracking-tighter">Bentornato,</div>
                     <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
@@ -26,9 +28,9 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                 </div>
                 <button 
                     onClick={forceUpdate}
-                    className="bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 px-3 py-1.5 rounded-lg text-[10px] text-blue-400 font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-blue-500/10"
+                    className="bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 px-4 py-2 rounded-xl text-[10px] text-blue-400 font-black uppercase tracking-[0.2em] transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-blue-500/10 group"
                 >
-                    <i className="fas fa-sync-alt animate-spin-slow" style={{animationDuration: '2s'}}></i> Aggiorna Sito
+                    <i className="fas fa-sync-alt group-hover:rotate-180 transition-transform duration-500"></i> Aggiorna Sito
                 </button>
             </div>
 
@@ -53,7 +55,6 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                 <div className="flex flex-col gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
                     
                     <div className="flex flex-row md:flex-col gap-4">
-                        {/* Friends Button */}
                         <button 
                             onClick={() => onNavigate(AppState.FRIENDS_LOBBY)}
                             className="flex-1 group relative flex items-center justify-center md:justify-start gap-4 bg-blue-700 hover:bg-blue-600 px-6 py-4 rounded-2xl shadow-xl transition-all hover:translate-x-1 active:scale-95 border-b-4 border-blue-900"
@@ -62,7 +63,6 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                             <span className="font-black text-white uppercase tracking-widest text-xs md:text-sm">Sfida Amici</span>
                         </button>
 
-                        {/* Gift Shop Button */}
                         <button 
                             onClick={() => onNavigate(AppState.GIFT_SHOP)}
                             className="flex-1 group relative flex items-center justify-center md:justify-start gap-4 bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl shadow-xl transition-all hover:translate-x-1 active:scale-95 border-b-4 border-red-900"
@@ -73,7 +73,6 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                     </div>
 
                     <div className="flex gap-4">
-                        {/* Skins Button */}
                         <button 
                             onClick={() => onNavigate(AppState.SKINS)}
                             className="flex-1 group relative flex flex-col items-center bg-gray-900/50 p-4 rounded-2xl border border-white/5 hover:border-emerald-500 transition-all active:scale-95"
@@ -84,7 +83,6 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                             <span className="mt-3 font-bold text-gray-400 uppercase tracking-widest text-[9px]">Skins</span>
                         </button>
 
-                        {/* Shop Button */}
                         <button 
                             onClick={() => onNavigate(AppState.SHOP)}
                             className="flex-1 group relative flex flex-col items-center bg-gray-900/50 p-4 rounded-2xl border border-white/5 hover:border-purple-500 transition-all active:scale-95"
@@ -103,7 +101,7 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                 <div className="text-[10px] text-gray-600 uppercase mb-3 tracking-[0.4em]">Aggiornamenti Live</div>
                 <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
                     <p className="text-gray-400 text-xs italic font-bold">
-                        SUGGERIMENTO: <span className="text-orange-400 uppercase">USA I CODICI SEGRETI PER COMPLETARE LE SFIDE!</span>
+                        SUGGERIMENTO: <span className="text-orange-400 uppercase">USA I CODICI SEGRETI PER SBLOCCARE LE SKIN ADMIN!</span>
                     </p>
                 </div>
             </div>

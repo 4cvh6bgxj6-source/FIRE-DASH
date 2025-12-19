@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Skin, UserStats } from '../types';
 
@@ -15,10 +14,10 @@ interface Props {
 }
 
 const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, gems, stats, isChristmasSeason, onUnlock, onSelect, onBack }) => {
-    // Ordiniamo le skin per mettere le speciali in fondo o evidenziate
+    // Ordiniamo le skin: prima le sbloccate, poi le altre. Le speciali s666 e s8 sempre alla fine.
     const sortedSkins = [...skins].sort((a, b) => {
-        const aSpecial = a.id === 's666' || a.id === 's8' ? 1 : 0;
-        const bSpecial = b.id === 's666' || b.id === 's8' ? 1 : 0;
+        const aSpecial = a.id === 's666' || a.id === 's8' ? 2 : (unlockedSkins.includes(a.id) ? 0 : 1);
+        const bSpecial = b.id === 's666' || b.id === 's8' ? 2 : (unlockedSkins.includes(b.id) ? 0 : 1);
         return aSpecial - bSpecial;
     });
 
@@ -35,7 +34,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                 </button>
                 <div className="text-center">
                     <h2 className="text-xl md:text-4xl font-black italic text-white uppercase tracking-tighter">Skins & Cubi</h2>
-                    <p className="text-gray-500 text-[8px] uppercase font-bold tracking-[0.2em] hidden sm:block">Personalizza il tuo Dash</p>
+                    <p className="text-gray-500 text-[8px] uppercase font-bold tracking-[0.2em] hidden sm:block">Personalizza il tuo Fire Dasher</p>
                 </div>
                 <div className="flex items-center gap-2 bg-gray-900 px-3 py-1.5 rounded-xl border border-white/5">
                     <i className="fas fa-gem text-blue-400 text-xs"></i>
@@ -43,7 +42,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                 </div>
             </div>
 
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-6 w-full max-w-6xl">
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 md:gap-6 w-full max-w-6xl">
                 {visibleSkins.map((skin) => {
                     const isUnlocked = unlockedSkins.includes(skin.id);
                     const isSelected = selectedSkinId === skin.id;
@@ -53,52 +52,52 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                     return (
                         <div 
                             key={skin.id} 
-                            className={`relative flex flex-col items-center p-3 md:p-6 rounded-2xl md:rounded-3xl border-2 transition-all duration-300 ${
+                            className={`relative flex flex-col items-center p-4 md:p-6 rounded-3xl border-2 transition-all duration-300 ${
                                 isSelected ? 'border-blue-500 bg-blue-900/20 scale-[1.02]' : 'border-white/5 bg-gray-900 hover:border-white/20'
-                            } ${!hasRequiredTier && !isUnlocked ? 'opacity-40 grayscale' : ''}`}
+                            } ${!hasRequiredTier && !isUnlocked ? 'opacity-40 grayscale cursor-not-allowed' : 'cursor-default'} ${skin.isGlitched ? 'glow-red' : ''}`}
                         >
                             {/* Special Badges */}
-                            <div className="absolute -top-1.5 -right-1.5 flex flex-col gap-1 items-end z-20">
-                                {skin.id === 's666' && <span className="bg-red-600 text-white text-[7px] font-black px-1.5 py-0.5 rounded shadow-lg animate-pulse uppercase">ERROR_666</span>}
-                                {skin.id === 's8' && <span className="bg-green-600 text-black text-[7px] font-black px-1.5 py-0.5 rounded shadow-lg uppercase">ADMIN</span>}
-                                {skin.requiredTier === 'vip' && <span className="bg-yellow-500 text-black text-[7px] font-black px-1.5 py-0.5 rounded shadow-lg uppercase">VIP</span>}
+                            <div className="absolute -top-2 -right-2 flex flex-col gap-1 items-end z-20">
+                                {skin.id === 's666' && <span className="bg-red-600 text-white text-[7px] font-black px-2 py-0.5 rounded-full shadow-lg animate-pulse uppercase border border-white/20">ERROR_CODE</span>}
+                                {skin.id === 's8' && <span className="bg-emerald-600 text-black text-[7px] font-black px-2 py-0.5 rounded-full shadow-lg uppercase border border-white/20">ADMIN_SYS</span>}
+                                {skin.requiredTier === 'vip' && !skin.isGlitched && <span className="bg-yellow-500 text-black text-[7px] font-black px-2 py-0.5 rounded-full shadow-lg uppercase">VIP</span>}
                             </div>
                             
-                            <div className={`w-12 h-12 md:w-20 md:h-20 flex items-center justify-center rounded-xl md:rounded-2xl text-2xl md:text-4xl mb-3 md:mb-4 transition-transform ${isSelected ? 'scale-110' : ''}`}
+                            <div className={`w-14 h-14 md:w-20 md:h-20 flex items-center justify-center rounded-2xl text-2xl md:text-4xl mb-4 transition-transform ${isSelected ? 'scale-110' : ''}`}
                                 style={{ 
                                     backgroundColor: skin.color, 
-                                    boxShadow: isSelected ? `0 0 20px ${skin.color}` : `0 0 5px ${skin.color}44`,
-                                    filter: skin.isGlitched ? 'contrast(1.2) brightness(1.2)' : 'none'
+                                    boxShadow: isSelected ? `0 0 25px ${skin.color}` : `0 0 5px ${skin.color}44`,
+                                    filter: skin.isGlitched ? 'contrast(1.3) brightness(1.1) hue-rotate(15deg)' : 'none'
                                 }}
                             >
                                 <i className={`fas ${skin.icon} text-white`}></i>
                             </div>
                             
-                            <h4 className="text-white font-black text-[9px] md:text-xs uppercase text-center mb-2 md:mb-3 h-6 flex items-center justify-center overflow-hidden line-clamp-1">
+                            <h4 className={`text-white font-black text-[9px] md:text-xs uppercase text-center mb-3 h-8 flex items-center justify-center ${skin.isGlitched ? 'text-red-500 font-mono' : ''}`}>
                                 {skin.name}
                             </h4>
                             
                             {isUnlocked ? (
                                 <button 
                                     onClick={() => onSelect(skin.id)} 
-                                    className={`w-full py-1.5 md:py-2.5 rounded-lg md:rounded-xl font-black text-[8px] md:text-xs uppercase transition-all transform active:scale-95 ${
-                                        isSelected ? 'bg-blue-500 text-white shadow-lg shadow-blue-500/20' : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                    className={`w-full py-2 md:py-2.5 rounded-xl font-black text-[9px] md:text-xs uppercase transition-all transform active:scale-95 ${
+                                        isSelected ? 'bg-blue-600 text-white shadow-lg' : 'bg-gray-800 text-gray-400 hover:bg-gray-700'
                                     }`}
                                 >
-                                    {isSelected ? 'In Uso' : 'Usa'}
+                                    {isSelected ? 'In Uso' : 'Seleziona'}
                                 </button>
                             ) : (
                                 <button 
                                     disabled={!hasRequiredTier} 
                                     onClick={() => onUnlock(skin, discountedCost)} 
-                                    className={`w-full py-1.5 md:py-2.5 rounded-lg md:rounded-xl font-black text-[8px] md:text-xs uppercase transition-all transform active:scale-95 ${
+                                    className={`w-full py-2 md:py-2.5 rounded-xl font-black text-[9px] md:text-xs uppercase transition-all transform active:scale-95 ${
                                         hasRequiredTier 
                                             ? 'bg-emerald-600 hover:bg-emerald-500 text-white shadow-lg' 
-                                            : 'bg-gray-800 text-gray-500 cursor-not-allowed'
+                                            : 'bg-gray-800/50 text-gray-600 cursor-not-allowed'
                                     }`}
                                 >
                                     <div className="flex items-center justify-center gap-1.5">
-                                        <i className="fas fa-gem text-[7px] md:text-[10px]"></i>
+                                        <i className="fas fa-gem text-[8px] md:text-[10px]"></i>
                                         <span>{discountedCost}</span>
                                     </div>
                                 </button>
