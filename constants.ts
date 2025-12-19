@@ -28,10 +28,10 @@ export const SKINS: Skin[] = [
     { id: 's10', name: 'Fire Lord', color: '#ff4500', cost: 450, unlocked: false, icon: 'fa-fire', requiredTier: 'vip' },
     
     // SPECIAL ADMIN SKIN
-    { id: 's8', name: 'ADMIN GLITCH', color: '#00ff41', cost: 999, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
+    { id: 's8', name: 'ADMIN GLITCH', color: '#00ff41', cost: 0, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
 
     // SECRET ERROR 666 SKIN
-    { id: 's666', name: 'ERROR 666', color: '#7f0000', cost: 6666, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true },
+    { id: 's666', name: 'ERROR 666', color: '#7f0000', cost: 0, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true },
 
     // SEBASTIAN SECRET SKIN
     { id: 's-seba', name: 'SEBASTIAN GHOST', color: '#6366f1', cost: 0, unlocked: false, icon: 'fa-ghost', requiredTier: 'free', isGlitched: true }
