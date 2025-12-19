@@ -62,24 +62,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
         let animationFrameId: number;
 
-        const handleKeyDown = (e: KeyboardEvent) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                inputHeld.current = true;
-                if (!skin.canFly && player.current.isGrounded) {
-                    player.current.dy = JUMP_FORCE;
-                    player.current.isGrounded = false;
-                }
-            }
-        };
-
-        const handleKeyUp = (e: KeyboardEvent) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') {
-                inputHeld.current = false;
-            }
-        };
-
-        const handleMouseDown = (e: MouseEvent) => {
-            if ((e.target as HTMLElement).closest('button')) return;
+        // Unified Input Handlers
+        const startAction = () => {
             inputHeld.current = true;
             if (!skin.canFly && player.current.isGrounded) {
                 player.current.dy = JUMP_FORCE;
@@ -87,34 +71,62 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             }
         };
 
-        const handleMouseUp = () => {
+        const stopAction = () => {
             inputHeld.current = false;
+        };
+
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                startAction();
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                stopAction();
+            }
+        };
+
+        const handleMouseDown = (e: MouseEvent) => {
+            if ((e.target as HTMLElement).closest('button')) return;
+            startAction();
+        };
+
+        const handleTouchStart = (e: TouchEvent) => {
+            if ((e.target as HTMLElement).closest('button')) return;
+            // Evita scrolling accidentale durante il gioco
+            if (e.cancelable) e.preventDefault();
+            startAction();
+        };
+
+        const handleTouchEnd = (e: TouchEvent) => {
+            stopAction();
         };
 
         window.addEventListener('keydown', handleKeyDown);
         window.addEventListener('keyup', handleKeyUp);
         canvas.addEventListener('mousedown', handleMouseDown);
-        window.addEventListener('mouseup', handleMouseUp);
+        window.addEventListener('mouseup', stopAction);
+        canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+        window.addEventListener('touchend', handleTouchEnd);
 
         const update = () => {
             if (world.current.finished) return;
 
-            // Meccanica Volo ERROR 666
+            // Meccanica Volo ERROR 666 (Funziona se inputHeld è true)
             if (skin.canFly && inputHeld.current) {
-                player.current.dy -= 1.6; // Spinta verso l'alto
+                player.current.dy -= 1.6; 
             }
 
             player.current.dy += GAME_GRAVITY;
             
             if (skin.canFly) {
-                // Controllo velocità di volo per non sfrecciare via troppo velocemente
                 player.current.dy = Math.max(-12, Math.min(8, player.current.dy));
             }
 
             player.current.y += player.current.dy;
             const groundY = canvas.height - 100;
             
-            // Rimbalzo o stop al soffitto
             if (player.current.y < 0) {
                 player.current.y = 0;
                 player.current.dy = 0.5;
@@ -126,7 +138,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 player.current.isGrounded = true;
                 player.current.rotation = Math.round(player.current.rotation / (Math.PI / 2)) * (Math.PI / 2);
             } else {
-                // Durante il volo la rotazione è più frenetica
                 player.current.rotation += (skin.canFly && inputHeld.current ? 0.3 : 0.15) * level.speedMultiplier;
                 player.current.isGrounded = false;
             }
@@ -168,7 +179,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
-            // Background speciale per ERROR 666
             if (skin.id === 's666') {
                 ctx.fillStyle = '#050000';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
@@ -240,7 +250,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             if (skin.id === 's666') {
                 const colors = ['#ff0000', '#000000', '#660000', '#ffffff'];
                 ctx.fillStyle = colors[Math.floor(Date.now() / 30) % colors.length];
-                // Scie di glitch
                 if (Math.random() > 0.5) {
                     ctx.fillRect(-player.current.width, -player.current.height / 4, player.current.width * 2, 2);
                 }
@@ -274,7 +283,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             window.removeEventListener('keydown', handleKeyDown);
             window.removeEventListener('keyup', handleKeyUp);
             canvas.removeEventListener('mousedown', handleMouseDown);
-            window.removeEventListener('mouseup', handleMouseUp);
+            window.removeEventListener('mouseup', stopAction);
+            canvas.removeEventListener('touchstart', handleTouchStart);
+            window.removeEventListener('touchend', handleTouchEnd);
         };
     }, [level, skin, onEnd, gemsCollected, isGodMode]);
 
