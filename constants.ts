@@ -27,6 +27,9 @@ export const SKINS: Skin[] = [
 
     // SECRET ERROR 666 SKIN
     { id: 's666', name: 'ERROR 666', color: '#7f0000', cost: 6666, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true },
+
+    // SEBASTIAN SECRET SKIN (NUOVA)
+    { id: 's-seba', name: 'SEBASTIAN GHOST', color: '#6366f1', cost: 0, unlocked: false, icon: 'fa-ghost', requiredTier: 'free', isGlitched: true }
 ];
 
 export const GAME_GRAVITY = 0.6;

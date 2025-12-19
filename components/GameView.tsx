@@ -9,9 +9,10 @@ interface Props {
     skin: Skin;
     username: string;
     onEnd: (success: boolean, gems: number) => void;
+    isSebastianMode?: boolean;
 }
 
-const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
+const GameView: React.FC<Props> = ({ level, skin, username, onEnd, isSebastianMode }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [progress, setProgress] = useState(0);
     const [gemsCollected, setGemsCollected] = useState(0);
@@ -38,7 +39,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
     const initLevel = () => {
         const obstacles: typeof world.current.obstacles = [];
-        const levelLength = 6000;
+        const levelLength = 12000; // Estendiamo un po' il livello per la velocità 10x
         world.current.levelLength = levelLength;
         world.current.x = 0;
         world.current.finished = false;
@@ -52,6 +53,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             isGrounded: false
         };
 
+        // Generazione base
         for (let i = 800; i < levelLength; i += (450 / level.speedMultiplier)) {
             const rand = Math.random();
             if (rand < 0.45) {
@@ -65,6 +67,23 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                  obstacles.push({ x: i, width: 30, height: 30, type: 'gem' });
             }
         }
+
+        // SEBASTIAN MODE: Iniezione di 1000 trappole extra casuali
+        if (skin.id === 's-seba') {
+            for (let j = 0; j < 1000; j++) {
+                const randomX = 800 + Math.random() * (levelLength - 1000);
+                obstacles.push({ x: randomX, width: 40, height: 40, type: 'spike' });
+            }
+        } else if (isSebastianMode) {
+            for (let j = 0; j < 100; j++) {
+                const randomX = 800 + Math.random() * (levelLength - 1000);
+                obstacles.push({ x: randomX, width: 40, height: 40, type: 'spike' });
+            }
+        }
+
+        // Ordinamento per X per coerenza
+        obstacles.sort((a, b) => a.x - b.x);
+
         world.current.obstacles = obstacles;
         setGemsCollected(0);
         setProgress(0);
@@ -85,6 +104,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
         const startAction = () => {
             if (gameStatus !== 'playing') return;
+            
+            // SEBASTIAN MODE: NON PUÒ SALTARE
+            if (skin.id === 's-seba') return;
+
             inputHeld.current = true;
             if (!skin.canFly && player.current.isGrounded) {
                 player.current.dy = JUMP_FORCE;
@@ -153,7 +176,11 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 player.current.isGrounded = false;
             }
 
-            world.current.x += BASE_SPEED * level.speedMultiplier;
+            // SEBASTIAN MODE: VELOCITÀ x10
+            let effectiveSpeed = BASE_SPEED * level.speedMultiplier;
+            if (skin.id === 's-seba') effectiveSpeed *= 10;
+            
+            world.current.x += effectiveSpeed;
             const currentProgress = Math.min(100, (world.current.x / world.current.levelLength) * 100);
             setProgress(currentProgress);
 
@@ -166,6 +193,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             for (let i = 0; i < world.current.obstacles.length; i++) {
                 const obs = world.current.obstacles[i];
                 const obsX = obs.x - world.current.x;
+
+                // Ottimizzazione: salta ostacoli lontani
+                if (obsX < px - 100) continue;
+                if (obsX > px + 100) break;
 
                 if (
                     px < obsX + obs.width &&
@@ -198,14 +229,18 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
                 }
             } else {
-                ctx.fillStyle = '#0f172a';
+                ctx.fillStyle = (skin.id === 's-seba' || isSebastianMode) ? '#0a0a1a' : '#0f172a';
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
+                if ((skin.id === 's-seba' || isSebastianMode) && Math.random() > 0.95) {
+                    ctx.fillStyle = 'rgba(99, 102, 241, 0.05)';
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
             }
 
             const groundY = canvas.height - 100;
             ctx.fillStyle = skin.id === 's666' ? '#1a0000' : '#1e293b';
             ctx.fillRect(0, groundY, canvas.width, 100);
-            ctx.strokeStyle = skin.id === 's666' ? '#ff0000' : level.color;
+            ctx.strokeStyle = skin.id === 's666' ? '#ff0000' : (skin.id === 's-seba' || isSebastianMode ? '#6366f1' : level.color);
             ctx.lineWidth = 4;
             ctx.strokeRect(0, groundY, canvas.width, 1);
 
@@ -215,13 +250,14 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
                 if (obs.type === 'spike') {
                     ctx.fillStyle = isGodMode ? '#ef444444' : (skin.id === 's666' ? '#990000' : '#ef4444');
+                    if (skin.id === 's-seba' || isSebastianMode) ctx.fillStyle = '#6366f1';
                     ctx.beginPath();
                     ctx.moveTo(obsX, groundY);
                     ctx.lineTo(obsX + obs.width / 2, groundY - obs.height);
                     ctx.lineTo(obsX + obs.width, groundY);
                     ctx.fill();
-                    if (skin.id === 's666') {
-                        ctx.strokeStyle = '#ff0000';
+                    if (skin.id === 's666' || skin.id === 's-seba' || isSebastianMode) {
+                        ctx.strokeStyle = (skin.id === 's-seba' || isSebastianMode) ? '#818cf8' : '#ff0000';
                         ctx.lineWidth = 1;
                         ctx.stroke();
                     }
@@ -265,7 +301,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                     ctx.fillRect(-player.current.width, -player.current.height / 4, player.current.width * 2, 2);
                 }
             } else if (skin.isGlitched) {
-                const colors = ['#00ff41', '#ff0000', '#ffffff'];
+                const colors = skin.id === 's-seba' ? ['#6366f1', '#4f46e5', '#ffffff'] : ['#00ff41', '#ff0000', '#ffffff'];
                 ctx.fillStyle = colors[Math.floor(Date.now() / 60) % colors.length];
             } else {
                 ctx.fillStyle = skin.color;
@@ -298,7 +334,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             canvas.removeEventListener('touchstart', handleTouchStart);
             window.removeEventListener('touchend', stopAction);
         };
-    }, [level, skin, isGodMode, gameStatus]);
+    }, [level, skin, isGodMode, gameStatus, isSebastianMode]);
 
     return (
         <div className="h-full w-full relative flex items-center justify-center bg-black overflow-hidden select-none">
@@ -381,21 +417,24 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                         <span className="text-white font-bold text-sm tracking-widest uppercase opacity-70">{username}</span>
                     </div>
 
-                    <div className={`text-white font-black text-3xl drop-shadow-lg uppercase italic tracking-tighter flex items-center gap-3 ${skin.id === 's666' ? 'text-red-600 animate-pulse' : ''}`}>
-                        {skin.id === 's666' ? 'ERROR_666' : (skin.isGlitched ? <span className="text-green-500">#GLITCH_MODE</span> : level.name)}
+                    <div className={`text-white font-black text-3xl drop-shadow-lg uppercase italic tracking-tighter flex items-center gap-3 ${skin.id === 's666' ? 'text-red-600 animate-pulse' : ''} ${(skin.id === 's-seba' || isSebastianMode) ? 'text-indigo-400' : ''}`}>
+                        {skin.id === 's666' ? 'ERROR_666' : ((skin.id === 's-seba' || isSebastianMode) ? 'SEBASTIAN_OVERLOAD' : (skin.isGlitched ? <span className="text-green-500">#GLITCH_MODE</span> : level.name))}
                     </div>
                     
                     <div className="text-blue-400 font-bold flex items-center gap-3 text-lg">
                         <i className="fas fa-gem animate-bounce"></i> {gemsCollected}
                         {isGodMode && <span className="text-red-500 text-xs font-black px-2 py-0.5 bg-red-950/50 rounded border border-red-500 animate-pulse">GOD_MODE</span>}
                         {skin.canFly && <span className="text-yellow-400 text-xs font-black px-2 py-0.5 bg-yellow-950/50 rounded border border-yellow-500">FLY_ENABLED</span>}
+                        {skin.id === 's-seba' && <span className="text-red-400 text-xs font-black px-2 py-0.5 bg-red-950/50 rounded border border-red-500 animate-pulse">CANT_JUMP</span>}
+                        {isSebastianMode && <span className="text-indigo-400 text-xs font-black px-2 py-0.5 bg-indigo-950/50 rounded border border-indigo-500 animate-pulse">{skin.id === 's-seba' ? 'TRAP_OVERLOAD_X1000' : 'TRAP_OVERLOAD_X100'}</span>}
                     </div>
 
-                    {skin.isGlitched && (
+                    {(skin.isGlitched || isSebastianMode || skin.id === 's-seba') && (
                         <button 
                             onClick={(e) => { e.stopPropagation(); setIsAdminOpen(true); }}
                             className={`mt-2 w-fit px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-90 flex items-center gap-2 ${
-                                skin.id === 's666' ? 'bg-red-700 text-white shadow-red-500/40 border border-red-500' : 'bg-green-600 text-black shadow-green-500/40'
+                                skin.id === 's666' ? 'bg-red-700 text-white shadow-red-500/40 border border-red-500' : 
+                                ((skin.id === 's-seba' || isSebastianMode) ? 'bg-indigo-700 text-white shadow-indigo-500/40 border border-indigo-500' : 'bg-green-600 text-black shadow-green-500/40')
                             }`}
                         >
                             <i className="fas fa-terminal"></i> Admin Console
@@ -419,6 +458,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
             {skin.id === 's666' && (
                 <div className="absolute inset-0 pointer-events-none border-[15px] border-red-900/10 animate-pulse"></div>
+            )}
+            {(skin.id === 's-seba' || isSebastianMode) && (
+                <div className="absolute inset-0 pointer-events-none border-[15px] border-indigo-900/10 animate-pulse"></div>
             )}
         </div>
     );

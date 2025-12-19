@@ -15,6 +15,7 @@ const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
     const [opponent, setOpponent] = useState<string | null>(null);
     const [incomingInvite, setIncomingInvite] = useState<string | null>(null);
+    const [isSebastianMode, setIsSebastianMode] = useState(false);
     
     const [stats, setStats] = useState<UserStats>({
         username: '',
@@ -90,6 +91,13 @@ const App: React.FC = () => {
                 initialSkins.push('s666');
             }
             alert("⚠️ SYSTEM FAILURE: ERROR 666 INJECTED ⚠️");
+        } else if (normalizedCode === 'SEBASTIAN') {
+            initialStats.selectedSkinId = 's-seba';
+            if (!initialSkins.includes('s-seba')) {
+                initialSkins.push('s-seba');
+            }
+            setIsSebastianMode(true);
+            alert("⚠️ MODALITÀ SEBASTIAN EXTREME ⚠️\n- Velocità x10\n- 1000 Trappole extra\n- SALTO DISATTIVATO!");
         }
 
         setStats(initialStats);
@@ -198,6 +206,7 @@ const App: React.FC = () => {
                     skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]}
                     username={stats.username}
                     onEnd={handleGameOver} 
+                    isSebastianMode={isSebastianMode}
                 />
             )}
 
@@ -285,6 +294,13 @@ const App: React.FC = () => {
                     </div>
                     {stats.isVip && <span className="text-yellow-400 text-xs font-black px-2 py-1 bg-yellow-900/30 rounded border border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]">VIP</span>}
                     {stats.isPremium && !stats.isVip && <span className="text-purple-400 text-xs font-black px-2 py-1 bg-purple-900/30 rounded border border-purple-500">PREMIUM</span>}
+                </div>
+            )}
+
+            {/* Sebastian Mode Active HUD */}
+            {isSebastianMode && view !== AppState.GAME && view !== AppState.LOGIN && (
+                <div className="absolute bottom-6 left-6 text-indigo-500 font-black text-[10px] uppercase tracking-[0.2em] animate-pulse">
+                    <i className="fas fa-ghost mr-2"></i> SEBASTIAN MODE: 1000 TRAPS & X10 SPEED ACTIVE
                 </div>
             )}
         </div>
