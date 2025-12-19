@@ -4,6 +4,15 @@ import { Level, Skin } from '../types';
 import { GAME_GRAVITY, JUMP_FORCE, BASE_SPEED } from '../constants';
 import AdminPanel from './AdminPanel';
 
+interface Particle {
+    x: number;
+    y: number;
+    vx: number;
+    vy: number;
+    life: number;
+    color: string;
+}
+
 interface Props {
     level: Level;
     skin: Skin;
@@ -21,6 +30,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
     const [isGodMode, setIsGodMode] = useState(false);
     const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing');
     
+    const particles = useRef<Particle[]>([]);
     const inputHeld = useRef(false);
     const player = useRef({
         y: 300,
@@ -28,24 +38,40 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
         width: 40,
         height: 40,
         rotation: 0,
-        isGrounded: false
+        isGrounded: false,
+        legPhase: 0
     });
     
     const world = useRef({
         x: 0,
         obstacles: [] as { x: number, width: number, height: number, type: 'spike' | 'block' | 'gem' }[],
         finished: false,
-        levelLength: 6000
+        levelLength: 8000
     });
 
     const isSeba = skin.id === 's-seba';
+    const isMan = skin.id === 's-man';
+
+    const createExplosion = (x: number, y: number, color: string) => {
+        for (let i = 0; i < 20; i++) {
+            particles.current.push({
+                x,
+                y,
+                vx: (Math.random() - 0.5) * 10,
+                vy: (Math.random() - 0.5) * 10,
+                life: 1.0,
+                color
+            });
+        }
+    };
 
     const initLevel = () => {
         const obstacles: typeof world.current.obstacles = [];
-        const levelLength = isSeba ? 35000 : 8000; 
+        const levelLength = isSeba ? 35000 : 8000 + (parseInt(level.id) * 1000); 
         world.current.levelLength = levelLength;
         world.current.x = 0;
         world.current.finished = false;
+        particles.current = [];
         
         player.current = {
             y: 300,
@@ -53,19 +79,20 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
             width: 40,
             height: 40,
             rotation: 0,
-            isGrounded: false
+            isGrounded: false,
+            legPhase: 0
         };
 
-        for (let i = 800; i < levelLength; i += (450 / level.speedMultiplier)) {
+        for (let i = 1000; i < levelLength - 500; i += (500 / level.speedMultiplier)) {
             const rand = Math.random();
-            if (rand < 0.4) obstacles.push({ x: i, width: 40, height: 40, type: 'spike' });
-            else if (rand < 0.6) obstacles.push({ x: i, width: 60, height: 60, type: 'block' });
-            else obstacles.push({ x: i, width: 30, height: 30, type: 'gem' });
+            if (rand < 0.35) obstacles.push({ x: i, width: 40, height: 40, type: 'spike' });
+            else if (rand < 0.55) obstacles.push({ x: i, width: 60, height: 60, type: 'block' });
+            else if (rand < 0.7) obstacles.push({ x: i, width: 30, height: 30, type: 'gem' });
         }
 
         if (isSeba) {
             for (let j = 0; j < 1000; j++) {
-                const randomX = 500 + Math.random() * (levelLength - 600);
+                const randomX = 500 + Math.random() * (levelLength - 1000);
                 obstacles.push({ x: randomX, width: 40, height: 40, type: 'spike' });
             }
         }
@@ -97,6 +124,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
             if (!skin.canFly && player.current.isGrounded) {
                 player.current.dy = JUMP_FORCE;
                 player.current.isGrounded = false;
+                // Particelle salto
+                createExplosion(150 + 20, canvas.height - 100, '#ffffff44');
             }
         };
 
@@ -127,14 +156,30 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
             if (player.current.y < 0) { player.current.y = 0; player.current.dy = 0.5; }
 
             if (player.current.y + player.current.height > groundY) {
+                if (!player.current.isGrounded) {
+                    // Atterraggio
+                    createExplosion(150 + 20, groundY, '#ffffff22');
+                }
                 player.current.y = groundY - player.current.height;
                 player.current.dy = 0;
                 player.current.isGrounded = true;
                 player.current.rotation = Math.round(player.current.rotation / (Math.PI / 2)) * (Math.PI / 2);
             } else {
                 const rotSpeed = isSeba ? 0.9 : 0.15;
-                player.current.rotation += (skin.canFly && inputHeld.current ? 0.3 : rotSpeed) * level.speedMultiplier;
+                if (!isMan) {
+                    player.current.rotation += (skin.canFly && inputHeld.current ? 0.3 : rotSpeed) * level.speedMultiplier;
+                }
                 player.current.isGrounded = false;
+            }
+
+            // Animazione gambe omino
+            if (isMan) {
+                player.current.legPhase += 0.2 * level.speedMultiplier;
+                if (!player.current.isGrounded) {
+                     player.current.rotation = Math.sin(Date.now() / 100) * 0.2;
+                } else {
+                     player.current.rotation = 0;
+                }
             }
 
             let effectiveSpeed = BASE_SPEED * level.speedMultiplier;
@@ -145,6 +190,14 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
             setProgress(currentProgress);
 
             if (currentProgress >= 100) { world.current.finished = true; setGameStatus('won'); }
+
+            // Particelle
+            particles.current.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+                p.life -= 0.02;
+                if (p.life <= 0) particles.current.splice(i, 1);
+            });
 
             const px = 150;
             for (let i = 0; i < world.current.obstacles.length; i++) {
@@ -165,7 +218,11 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
                         world.current.obstacles.splice(i, 1);
                         continue;
                     }
-                    if (!isGodMode) { setGameStatus('lost'); return; }
+                    if (!isGodMode) { 
+                        setGameStatus('lost'); 
+                        createExplosion(px + 20, player.current.y + 20, skin.color);
+                        return; 
+                    }
                 }
             }
         };
@@ -173,26 +230,38 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             
+            // Sfondo
+            const bgGradient = ctx.createLinearGradient(0, 0, 0, canvas.height);
             if (isSeba) {
-                ctx.fillStyle = '#050212';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
-                ctx.fillStyle = 'rgba(99, 102, 241, 0.08)';
-                ctx.fillRect(0, (Date.now() / 1.5) % canvas.height, canvas.width, 60);
+                bgGradient.addColorStop(0, '#050212');
+                bgGradient.addColorStop(1, '#1e1b4b');
             } else if (skin.id === 's666') {
-                ctx.fillStyle = '#050000';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                bgGradient.addColorStop(0, '#050000');
+                bgGradient.addColorStop(1, '#2d0000');
             } else {
-                ctx.fillStyle = '#0f172a';
-                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                bgGradient.addColorStop(0, '#0f172a');
+                bgGradient.addColorStop(1, '#1e293b');
+            }
+            ctx.fillStyle = bgGradient;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Effetto Griglia
+            ctx.strokeStyle = 'rgba(255,255,255,0.03)';
+            ctx.lineWidth = 1;
+            const gridSize = 50;
+            const offsetX = -(world.current.x % gridSize);
+            for (let x = offsetX; x < canvas.width; x += gridSize) {
+                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
             }
 
             const groundY = canvas.height - 100;
-            ctx.fillStyle = skin.id === 's666' ? '#1a0000' : '#1e293b';
+            ctx.fillStyle = skin.id === 's666' ? '#1a0000' : '#020617';
             ctx.fillRect(0, groundY, canvas.width, 100);
             ctx.strokeStyle = isSeba ? '#6366f1' : (skin.id === 's666' ? '#ff0000' : level.color);
             ctx.lineWidth = 4;
-            ctx.strokeRect(0, groundY, canvas.width, 1);
+            ctx.strokeRect(0, groundY, canvas.width, 2);
 
+            // Ostacoli
             world.current.obstacles.forEach(obs => {
                 const obsX = obs.x - world.current.x;
                 if (obsX < -100 || obsX > canvas.width + 100) return;
@@ -204,11 +273,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
                     ctx.lineTo(obsX + obs.width / 2, groundY - obs.height);
                     ctx.lineTo(obsX + obs.width, groundY);
                     ctx.fill();
-                    if (isSeba || skin.id === 's666') {
-                        ctx.strokeStyle = isSeba ? '#fff' : '#ff0000';
-                        ctx.lineWidth = 1;
-                        ctx.stroke();
-                    }
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1; ctx.stroke();
                 } else if (obs.type === 'block') {
                     ctx.fillStyle = isGodMode ? '#47556944' : '#475569';
                     ctx.fillRect(obsX, groundY - obs.height, obs.width, obs.height);
@@ -217,11 +282,21 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
                 } else if (obs.type === 'gem') {
                     ctx.fillStyle = isSeba ? '#fff' : (skin.id === 's666' ? '#ff0000' : '#60a5fa');
                     ctx.beginPath();
-                    ctx.arc(obsX + obs.width / 2, groundY - obs.height / 2 - 20, obs.width / 2, 0, Math.PI * 2);
+                    ctx.arc(obsX + obs.width / 2, groundY - obs.height / 2 - 20, 15, 0, Math.PI * 2);
                     ctx.fill();
+                    ctx.strokeStyle = '#fff'; ctx.stroke();
                 }
             });
 
+            // Particelle
+            particles.current.forEach(p => {
+                ctx.globalAlpha = p.life;
+                ctx.fillStyle = p.color;
+                ctx.fillRect(p.x, p.y, 4, 4);
+            });
+            ctx.globalAlpha = 1.0;
+
+            // Player
             ctx.save();
             let pX = 150 + player.current.width / 2;
             let pY = player.current.y + player.current.height / 2;
@@ -236,41 +311,61 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
             ctx.translate(pX, pY);
             ctx.rotate(player.current.rotation);
             
-            if (isSeba) {
-                const colors = ['#6366f1', '#4f46e5', '#ffffff', '#000000'];
-                ctx.fillStyle = colors[Math.floor(Date.now() / 15) % colors.length];
-            } else if (skin.id === 's666') {
-                const colors = ['#ff0000', '#000000', '#660000', '#ffffff'];
-                ctx.fillStyle = colors[Math.floor(Date.now() / 30) % colors.length];
-            } else ctx.fillStyle = skin.color;
-            
-            // Render skin as FontAwesome icon
-            ctx.font = '24px "Font Awesome 6 Free"';
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            ctx.fontWeight = '900';
-            
-            // Map common FA icon classes to unicode for canvas
-            let iconCode = '\uf0c8'; // square default
-            if (skin.icon === 'fa-square') iconCode = '\uf0c8';
-            if (skin.icon === 'fa-cube') iconCode = '\uf1b2';
-            if (skin.icon === 'fa-diamond') iconCode = '\uf219';
-            if (skin.icon === 'fa-crown') iconCode = '\uf3a5';
-            if (skin.icon === 'fa-bolt') iconCode = '\uf0e7';
-            if (skin.icon === 'fa-terminal') iconCode = '\uf120';
-            if (skin.icon === 'fa-sun') iconCode = '\uf185';
-            if (skin.icon === 'fa-fire') iconCode = '\uf06d';
-            if (skin.icon === 'fa-user-secret') iconCode = '\uf21b';
-            if (skin.icon === 'fa-skull') iconCode = '\uf54c';
-            if (skin.icon === 'fa-ghost') iconCode = '\uf6e2';
-            if (skin.icon === 'fa-walking') iconCode = '\uf554'; // Omino che cammina/salta
+            if (isMan) {
+                // DISEGNO OMINO CON GAMBE
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3;
+                ctx.lineCap = 'round';
+                
+                // Testa
+                ctx.beginPath(); ctx.arc(0, -15, 8, 0, Math.PI * 2); ctx.stroke();
+                // Corpo
+                ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, 8); ctx.stroke();
+                // Braccia
+                ctx.beginPath(); ctx.moveTo(-10, -2); ctx.lineTo(10, -2); ctx.stroke();
+                
+                // Gambe Animate
+                const legSwing = Math.sin(player.current.legPhase) * 12;
+                if (player.current.isGrounded) {
+                    // Gamba 1
+                    ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(legSwing, 20); ctx.stroke();
+                    // Gamba 2
+                    ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(-legSwing, 20); ctx.stroke();
+                } else {
+                    // Posa Salto
+                    ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(-10, 15); ctx.lineTo(-5, 22); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, 8); ctx.lineTo(10, 12); ctx.lineTo(15, 18); ctx.stroke();
+                }
+            } else {
+                if (isSeba) {
+                    const colors = ['#6366f1', '#4f46e5', '#ffffff', '#000000'];
+                    ctx.fillStyle = colors[Math.floor(Date.now() / 15) % colors.length];
+                } else if (skin.id === 's666') {
+                    const colors = ['#ff0000', '#000000', '#660000', '#ffffff'];
+                    ctx.fillStyle = colors[Math.floor(Date.now() / 30) % colors.length];
+                } else ctx.fillStyle = skin.color;
 
-            ctx.fillText(iconCode, 0, 0);
-            
-            if (isSeba || skin.id === 's666') {
-                ctx.strokeStyle = isSeba ? '#fff' : '#000';
-                ctx.lineWidth = 1;
-                ctx.strokeText(iconCode, 0, 0);
+                ctx.font = '32px "Font Awesome 6 Free"';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fontWeight = '900';
+                
+                let iconCode = '\uf0c8'; 
+                if (skin.icon === 'fa-square') iconCode = '\uf0c8';
+                if (skin.icon === 'fa-cube') iconCode = '\uf1b2';
+                if (skin.icon === 'fa-diamond') iconCode = '\uf219';
+                if (skin.icon === 'fa-crown') iconCode = '\uf3a5';
+                if (skin.icon === 'fa-bolt') iconCode = '\uf0e7';
+                if (skin.icon === 'fa-terminal') iconCode = '\uf120';
+                if (skin.icon === 'fa-sun') iconCode = '\uf185';
+                if (skin.icon === 'fa-fire') iconCode = '\uf06d';
+                if (skin.icon === 'fa-user-secret') iconCode = '\uf21b';
+                if (skin.icon === 'fa-skull') iconCode = '\uf54c';
+                if (skin.icon === 'fa-ghost') iconCode = '\uf6e2';
+
+                ctx.fillText(iconCode, 0, 0);
+                if (isSeba || skin.id === 's666') {
+                    ctx.strokeStyle = isSeba ? '#fff' : '#000';
+                    ctx.lineWidth = 1; ctx.strokeText(iconCode, 0, 0);
+                }
             }
             ctx.restore();
 
@@ -286,7 +381,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
             window.removeEventListener('keyup', handleKeyUp);
             canvas.removeEventListener('mousedown', handleMouseDown);
             window.removeEventListener('mouseup', stopAction);
-            canvas.addEventListener('touchstart', handleTouchStart);
+            canvas.removeEventListener('touchstart', handleTouchStart);
             window.removeEventListener('touchend', stopAction);
         };
     }, [level, skin.id, isGodMode, gameStatus]);
@@ -313,7 +408,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
                     <div className="text-center p-10 bg-gray-900 border-2 border-yellow-500 rounded-3xl shadow-[0_0_60px_rgba(234,179,8,0.4)] max-md w-full">
                         <i className="fas fa-crown text-6xl text-yellow-400 animate-bounce mb-6"></i>
                         <h2 className="text-4xl font-black italic text-white mb-2 uppercase">SUPREME!</h2>
-                        <p className="text-yellow-400 font-black text-2xl mb-8">PREMIO MASSIMO!</p>
+                        <p className="text-yellow-400 font-black text-2xl mb-8">LIVELLO COMPLETATO!</p>
                         <div className="bg-blue-900/20 border border-blue-500/30 p-4 rounded-2xl mb-8">
                             <div className="text-2xl font-black text-blue-400 flex items-center justify-center gap-2"><i className="fas fa-gem"></i> {gemsCollected + (isSeba ? 5000 : 0)}</div>
                         </div>
@@ -330,16 +425,12 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd, isSeba
                     <div className={`text-white font-black text-3xl italic tracking-tighter ${isSeba ? 'text-indigo-400 font-mono' : ''}`}>{isSeba ? 'SEBASTIAN_MOD_ON' : level.name}</div>
                     <div className="text-blue-400 font-bold flex items-center gap-3 text-lg">
                         <i className="fas fa-gem animate-bounce"></i> {gemsCollected}
-                        {isSeba && <span className="text-red-500 text-[10px] font-black px-2 py-0.5 bg-red-950/50 rounded border border-red-500 animate-pulse">NO_JUMP</span>}
-                        {isSeba && <span className="text-indigo-400 text-[10px] font-black px-2 py-0.5 bg-indigo-950/50 rounded border border-indigo-500 animate-pulse">10X_SPEED</span>}
-                        {isSeba && <span className="text-indigo-200 text-[10px] font-black px-2 py-0.5 bg-indigo-900/50 rounded border border-indigo-300">1000_TRAPS</span>}
                     </div>
                 </div>
                 <div className={`text-white font-black text-5xl italic ${isSeba ? 'text-indigo-400' : ''}`}>{Math.floor(progress)}%</div>
             </div>
 
             <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className={`w-full h-full cursor-pointer ${isSeba ? 'brightness-125 contrast-125' : ''}`} />
-            {isSeba && <div className="absolute inset-0 pointer-events-none border-[30px] border-indigo-600/20 animate-pulse shadow-[inset_0_0_200px_rgba(99,102,241,0.35)]"></div>}
         </div>
     );
 };

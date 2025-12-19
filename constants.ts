@@ -5,7 +5,11 @@ export const LEVELS: Level[] = [
     { id: '1', name: 'Stereo Madness', difficulty: 'Easy', speedMultiplier: 1, color: '#34d399' },
     { id: '2', name: 'Back On Track', difficulty: 'Easy', speedMultiplier: 1, color: '#60a5fa' },
     { id: '3', name: 'Polargeist', difficulty: 'Normal', speedMultiplier: 1.2, color: '#a78bfa' },
-    { id: '4', name: 'Darkness Hardcore', difficulty: 'Extreme', speedMultiplier: 4, color: '#ef4444' },
+    { id: '4', name: 'Dry Out', difficulty: 'Normal', speedMultiplier: 1.3, color: '#facc15' },
+    { id: '5', name: 'Base After Base', difficulty: 'Normal', speedMultiplier: 1.3, color: '#fb923c' },
+    { id: '6', name: 'Cant Let Go', difficulty: 'Hard', speedMultiplier: 1.5, color: '#f87171' },
+    { id: '7', name: 'Jumper', difficulty: 'Hard', speedMultiplier: 1.6, color: '#c084fc' },
+    { id: '8', name: 'Darkness Hardcore', difficulty: 'Extreme', speedMultiplier: 4, color: '#ef4444' },
 ];
 
 export const SKINS: Skin[] = [
@@ -29,7 +33,7 @@ export const SKINS: Skin[] = [
     // SECRET ERROR 666 SKIN
     { id: 's666', name: 'ERROR 666', color: '#7f0000', cost: 6666, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true },
 
-    // SEBASTIAN SECRET SKIN (NUOVA)
+    // SEBASTIAN SECRET SKIN
     { id: 's-seba', name: 'SEBASTIAN GHOST', color: '#6366f1', cost: 0, unlocked: false, icon: 'fa-ghost', requiredTier: 'free', isGlitched: true }
 ];
 
