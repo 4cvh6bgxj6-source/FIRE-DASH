@@ -29,12 +29,13 @@ const App: React.FC = () => {
 
     const isChristmasSeason = true;
 
-    // Gestione Inviti Reali via URL
+    // Gestione Inviti Reali via URL (Migliorata per skin)
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const challengeFrom = params.get('challenge');
+        const challengeSkin = params.get('skin') || 's1';
         
-        if (challengeFrom && stats.username && stats.username !== 'Guest') {
+        if (challengeFrom && stats.username && stats.username !== 'Guest' && view === AppState.MENU) {
             const challenge: MPChallenge = {
                 id: 'url-' + Date.now(),
                 from: challengeFrom,
@@ -42,6 +43,8 @@ const App: React.FC = () => {
                 status: 'pending',
                 timestamp: Date.now()
             };
+            // Usiamo lo stato per salvare temporaneamente la skin dell'avversario reale
+            (window as any)._oppSkin = challengeSkin;
             setActiveChallenge(challenge);
         }
     }, [stats.username, view]);
@@ -112,11 +115,16 @@ const App: React.FC = () => {
 
     const acceptChallenge = () => {
         if (!activeChallenge) return;
-        // Chi accetta (TU) va sopra, chi ha mandato (AVVERSARIO) va sotto
-        setOpponentData({ username: activeChallenge.from, skinId: 's-man' }); 
+        const oppSkin = (window as any)._oppSkin || 's-man';
+        setOpponentData({ username: activeChallenge.from, skinId: oppSkin }); 
         setView(AppState.MP_LOBBY);
         setActiveChallenge(null);
         window.history.replaceState({}, document.title, window.location.pathname);
+    };
+
+    const handleChallengeBot = (name: string, isBot: boolean) => {
+        setOpponentData({ username: name, skinId: isBot ? 's2' : 's-man' });
+        setView(AppState.MP_LOBBY);
     };
 
     return (
@@ -124,17 +132,20 @@ const App: React.FC = () => {
             {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
 
             {activeChallenge && view === AppState.MENU && (
-                <div className="fixed inset-0 z-[200] bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-                    <div className="bg-gray-900 border-2 border-red-500 p-8 rounded-[3rem] shadow-[0_0_40px_rgba(239,68,68,0.5)] flex flex-col gap-6 max-w-sm w-full text-center">
-                        <div className="w-20 h-20 bg-red-600 rounded-3xl flex items-center justify-center text-4xl self-center animate-bounce shadow-lg">
+                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
+                    <div className="bg-gray-900 border-2 border-red-500 p-8 rounded-[3rem] shadow-[0_0_50px_rgba(239,68,68,0.5)] flex flex-col gap-6 max-w-sm w-full text-center relative overflow-hidden">
+                        <div className="absolute top-0 left-0 w-full h-1 bg-red-500 animate-pulse"></div>
+                        <div className="w-24 h-24 bg-red-600 rounded-3xl flex items-center justify-center text-4xl self-center animate-bounce shadow-2xl shadow-red-500/40 border-b-4 border-red-900">
                             <i className="fas fa-swords text-white"></i>
                         </div>
                         <div>
-                            <h4 className="text-white font-black uppercase text-xl mb-2">SFIDA IN CORSO!</h4>
-                            <p className="text-gray-400 text-xs font-bold">L'utente <span className="text-red-400">{activeChallenge.from}</span> ti sta sfidando dal cloud.</p>
+                            <h4 className="text-white font-black uppercase text-xl mb-2 tracking-tighter">SFIDA REALE!</h4>
+                            <p className="text-gray-400 text-xs font-bold leading-relaxed">
+                                L'utente <span className="text-red-400">{activeChallenge.from}</span> ti ha inviato un link di sfida. Accetti il duello?
+                            </p>
                         </div>
-                        <div className="flex flex-col gap-3">
-                            <button onClick={acceptChallenge} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest shadow-xl border-b-4 border-red-950">Accetta Sfida</button>
+                        <div className="flex flex-col gap-3 mt-4">
+                            <button onClick={acceptChallenge} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest shadow-xl border-b-4 border-red-950 transform active:scale-95 transition-all">Accetta Sfida</button>
                             <button onClick={() => { setActiveChallenge(null); window.history.replaceState({}, document.title, window.location.pathname); }} className="w-full bg-white/10 hover:bg-white/20 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all">Rifiuta</button>
                         </div>
                     </div>
@@ -179,7 +190,7 @@ const App: React.FC = () => {
                 <GiftShop onClaim={(a) => setStats(p => ({...p, gems: p.gems + a}))} onBack={() => setView(AppState.MENU)} />
             )}
             {view === AppState.FRIENDS_LOBBY && (
-                <FriendsLobby currentUser={stats.username} isVip={stats.isVip} onBack={() => setView(AppState.MENU)} onChallenge={() => {}} />
+                <FriendsLobby currentUser={stats.username} selectedSkinId={stats.selectedSkinId} isVip={stats.isVip} onBack={() => setView(AppState.MENU)} onChallenge={handleChallengeBot} />
             )}
             {view === AppState.MP_LOBBY && opponentData && (
                 <MPLobby stats={stats} opponentName={opponentData.username} levels={LEVELS} onStart={(l, s) => { setCurrentLevel(l); setView(AppState.MP_GAME); }} onBack={() => setView(AppState.MENU)} />
