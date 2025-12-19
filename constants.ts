@@ -24,6 +24,9 @@ export const SKINS: Skin[] = [
     
     // SPECIAL ADMIN SKIN - BUGGATA
     { id: 's8', name: 'ADMIN GLITCH', color: '#00ff41', cost: 999, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
+
+    // SECRET ERROR 666 SKIN
+    { id: 's666', name: 'ERROR 666', color: '#7f0000', cost: 6666, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true },
 ];
 
 export const GAME_GRAVITY = 0.6;

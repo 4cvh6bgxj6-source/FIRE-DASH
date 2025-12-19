@@ -74,6 +74,15 @@ const App: React.FC = () => {
         } else if (normalizedCode === 'PREMIUM') {
             initialStats.isPremium = true;
             initialStats.gems += 500;
+        } else if (normalizedCode === 'ERROR 666') {
+            // Sblocco immediato della skin segreta tramite codice
+            initialStats.isVip = true;
+            initialStats.isPremium = true;
+            initialStats.selectedSkinId = 's666';
+            if (!initialSkins.includes('s666')) {
+                initialSkins.push('s666');
+            }
+            alert("⚠️ SISTEMA COMPROMESSO: ERROR 666 RILEVATO ⚠️");
         }
 
         setStats(initialStats);
@@ -168,6 +177,7 @@ const App: React.FC = () => {
                 <GameView 
                     level={getEffectiveLevel(currentLevel)} 
                     skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]}
+                    username={stats.username}
                     onEnd={handleGameOver} 
                 />
             )}
@@ -209,7 +219,7 @@ const App: React.FC = () => {
                         <i className="fas fa-gem"></i>
                         <span>{stats.gems}</span>
                     </div>
-                    {stats.isVip && <span className="text-yellow-400 text-xs font-black px-2 py-1 bg-yellow-900/30 rounded border border-yellow-500">VIP</span>}
+                    {stats.isVip && <span className="text-yellow-400 text-xs font-black px-2 py-1 bg-yellow-900/30 rounded border border-yellow-500 shadow-[0_0_10px_rgba(234,179,8,0.3)]">VIP</span>}
                     {stats.isPremium && !stats.isVip && <span className="text-purple-400 text-xs font-black px-2 py-1 bg-purple-900/30 rounded border border-purple-500">PREMIUM</span>}
                     {isChristmasSeason && (
                         <div className="flex items-center gap-1 text-red-500 font-black text-[10px] bg-red-900/20 px-2 py-1 rounded border border-red-500/50 animate-pulse">

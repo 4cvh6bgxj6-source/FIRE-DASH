@@ -42,6 +42,9 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                         (skin.requiredTier === 'premium' && (stats.isPremium || stats.isVip)) ||
                         (skin.requiredTier === 'vip' && stats.isVip);
 
+                    // Gestione nome segreto per s666
+                    const displayName = (skin.id === 's666' && !isUnlocked) ? 'SECRET...' : skin.name;
+
                     return (
                         <div 
                             key={skin.id}
@@ -61,8 +64,8 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                                     </div>
                                 )}
                                 {skin.isGlitched && (
-                                    <div className="bg-red-600 text-white text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse uppercase">
-                                        <i className="fas fa-bug"></i> Admin
+                                    <div className={`${skin.id === 's666' ? 'bg-red-950 text-red-500 border border-red-500' : 'bg-red-600 text-white'} text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse uppercase`}>
+                                        <i className={`fas ${skin.id === 's666' ? 'fa-biohazard' : 'fa-bug'}`}></i> {skin.id === 's666' ? 'ERROR' : 'Admin'}
                                     </div>
                                 )}
                             </div>
@@ -70,16 +73,17 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                             <div 
                                 className={`w-20 h-20 flex items-center justify-center rounded-2xl text-4xl mb-4 transition-transform ${isSelected ? 'scale-110' : ''} ${skin.isGlitched ? 'animate-bounce' : ''}`}
                                 style={{ 
-                                    backgroundColor: skin.color, 
+                                    backgroundColor: (skin.id === 's666' && !isUnlocked) ? '#000' : skin.color, 
                                     boxShadow: isSelected ? `0 0 25px ${skin.color}` : `0 0 10px ${skin.color}44`,
-                                    filter: skin.isGlitched ? 'hue-rotate(90deg) contrast(1.5)' : 'none'
+                                    filter: skin.isGlitched ? (skin.id === 's666' ? 'contrast(2) brightness(0.8)' : 'hue-rotate(90deg) contrast(1.5)') : 'none',
+                                    border: (skin.id === 's666' && !isUnlocked) ? '2px dashed #ff0000' : 'none'
                                 }}
                             >
-                                <i className={`fas ${skin.icon} text-white ${skin.isGlitched ? 'skew-x-12' : ''}`}></i>
+                                <i className={`fas ${ (skin.id === 's666' && !isUnlocked) ? 'fa-question' : skin.icon} text-white ${skin.isGlitched ? 'skew-x-12' : ''}`}></i>
                             </div>
                             
-                            <h4 className={`text-white font-black text-xs uppercase text-center mb-3 h-8 flex items-center ${skin.isGlitched ? 'text-green-400 font-mono italic' : ''}`}>
-                                {skin.name}
+                            <h4 className={`text-white font-black text-xs uppercase text-center mb-3 h-8 flex items-center ${skin.isGlitched ? (skin.id === 's666' ? 'text-red-600 font-mono font-black' : 'text-green-400 font-mono italic') : ''}`}>
+                                {displayName}
                             </h4>
                             
                             {isUnlocked ? (
@@ -97,7 +101,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                                     onClick={() => onUnlock(skin, discountedCost)}
                                     className={`w-full py-2.5 rounded-xl font-black text-xs uppercase flex flex-col items-center justify-center transition-all ${
                                         hasRequiredTier 
-                                        ? (skin.isGlitched ? 'bg-red-600 hover:bg-red-500' : 'bg-emerald-600 hover:bg-emerald-500') + ' text-white shadow-lg' 
+                                        ? (skin.id === 's666' ? 'bg-red-900 hover:bg-red-800' : (skin.isGlitched ? 'bg-red-600 hover:bg-red-500' : 'bg-emerald-600 hover:bg-emerald-500')) + ' text-white shadow-lg' 
                                         : 'bg-gray-800 text-gray-500 cursor-not-allowed'
                                     }`}
                                 >
@@ -125,15 +129,15 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
             </div>
 
             <div className="mt-16 flex flex-col md:flex-row items-center gap-8 bg-white/5 p-8 rounded-3xl border border-white/10 max-w-4xl backdrop-blur-md">
-                <div className="text-red-500 text-5xl animate-pulse">
-                    <i className="fas fa-user-shield"></i>
+                <div className="text-red-600 text-5xl animate-bounce">
+                    <i className="fas fa-radiation"></i>
                 </div>
                 <div>
-                    <h5 className="text-white font-black uppercase text-lg mb-1 tracking-tighter">Attenzione: Accesso Admin rilevato</h5>
+                    <h5 className="text-white font-black uppercase text-lg mb-1 tracking-tighter">Protocollo d'Emergenza 666</h5>
                     <p className="text-gray-400 text-sm leading-relaxed">
-                        La skin <span className="text-green-400 font-mono">ADMIN GLITCH</span> è un oggetto corrotto del sistema. 
-                        Usarla attiverà dei <span className="text-red-400 font-bold uppercase">visual bug</span> durante il gioco. 
-                        Requisito: <span className="text-yellow-400 font-bold">VIP Membership</span> e <span className="text-blue-400 font-bold">999 Gemme</span>.
+                        Esiste un'entità chiamata <span className="text-red-600 font-black">ERROR 666</span>. 
+                        Sbloccarla richiede il massimo livello di VIP e una quantità enorme di gemme. 
+                        Si dice che questa skin rompa le leggi della gravità permettendo al portatore di <span className="text-yellow-400 font-bold uppercase">volare infinitamente</span> tenendo premuto il salto.
                     </p>
                 </div>
             </div>

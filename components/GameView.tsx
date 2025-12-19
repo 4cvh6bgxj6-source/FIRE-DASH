@@ -7,16 +7,18 @@ import AdminPanel from './AdminPanel';
 interface Props {
     level: Level;
     skin: Skin;
+    username: string;
     onEnd: (success: boolean, gems: number) => void;
 }
 
-const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
+const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const [progress, setProgress] = useState(0);
     const [gemsCollected, setGemsCollected] = useState(0);
     const [isAdminOpen, setIsAdminOpen] = useState(false);
     const [isGodMode, setIsGodMode] = useState(false);
     
+    const inputHeld = useRef(false);
     const player = useRef({
         y: 300,
         dy: 0,
@@ -60,25 +62,67 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
 
         let animationFrameId: number;
 
-        const handleInput = () => {
-            if (player.current.isGrounded) {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                inputHeld.current = true;
+                if (!skin.canFly && player.current.isGrounded) {
+                    player.current.dy = JUMP_FORCE;
+                    player.current.isGrounded = false;
+                }
+            }
+        };
+
+        const handleKeyUp = (e: KeyboardEvent) => {
+            if (e.code === 'Space' || e.code === 'ArrowUp') {
+                inputHeld.current = false;
+            }
+        };
+
+        const handleMouseDown = (e: MouseEvent) => {
+            // Impedisce il salto se si clicca sull'Admin Panel button
+            if ((e.target as HTMLElement).closest('button')) return;
+            
+            inputHeld.current = true;
+            if (!skin.canFly && player.current.isGrounded) {
                 player.current.dy = JUMP_FORCE;
                 player.current.isGrounded = false;
             }
         };
 
-        window.addEventListener('keydown', (e) => {
-            if (e.code === 'Space' || e.code === 'ArrowUp') handleInput();
-        });
-        canvas.addEventListener('mousedown', handleInput);
+        const handleMouseUp = () => {
+            inputHeld.current = false;
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        window.addEventListener('keyup', handleKeyUp);
+        canvas.addEventListener('mousedown', handleMouseDown);
+        window.addEventListener('mouseup', handleMouseUp);
 
         const update = () => {
             if (world.current.finished) return;
 
+            // Meccanica di volo speciale per ERROR 666
+            if (skin.canFly && inputHeld.current) {
+                player.current.dy -= 1.4; // Spinta verso l'alto
+            }
+
             player.current.dy += GAME_GRAVITY;
+            
+            // Limitatore velocità per controllo volo
+            if (skin.canFly) {
+                player.current.dy = Math.max(-12, Math.min(8, player.current.dy));
+            }
+
             player.current.y += player.current.dy;
 
             const groundY = canvas.height - 100;
+            
+            // Collisione soffitto per volo
+            if (player.current.y < 0) {
+                player.current.y = 0;
+                player.current.dy = 0.5;
+            }
+
             if (player.current.y + player.current.height > groundY) {
                 player.current.y = groundY - player.current.height;
                 player.current.dy = 0;
@@ -86,6 +130,7 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 player.current.rotation = Math.round(player.current.rotation / (Math.PI / 2)) * (Math.PI / 2);
             } else {
                 player.current.rotation += 0.15 * level.speedMultiplier;
+                player.current.isGrounded = false;
             }
 
             world.current.x += BASE_SPEED * level.speedMultiplier;
@@ -114,7 +159,6 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                         continue;
                     }
 
-                    // COLLISION CHECK: Ignore if God Mode is on
                     if (!isGodMode) {
                         world.current.finished = true;
                         onEnd(false, gemsCollected);
@@ -127,29 +171,27 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            if (skin.isGlitched) {
-                if (Math.random() > 0.95) {
-                    ctx.fillStyle = `rgba(${Math.random()*50}, 255, ${Math.random()*50}, 0.08)`;
+            if (skin.id === 's666') {
+                if (Math.random() > 0.85) {
+                    ctx.fillStyle = `rgba(127, 0, 0, ${Math.random() * 0.15})`;
                     ctx.fillRect(0, 0, canvas.width, canvas.height);
-                }
-                if (Math.random() > 0.9) {
-                    ctx.strokeStyle = '#00ff41';
-                    ctx.lineWidth = 0.5;
-                    const ry = Math.random() * canvas.height;
-                    ctx.beginPath();
-                    ctx.moveTo(0, ry);
-                    ctx.lineTo(canvas.width, ry);
-                    ctx.stroke();
                 }
             }
 
-            ctx.fillStyle = '#0f172a';
+            if (skin.isGlitched) {
+                if (Math.random() > 0.94) {
+                    ctx.fillStyle = skin.id === 's666' ? 'rgba(255,0,0,0.1)' : `rgba(0, 255, 65, 0.08)`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+
+            ctx.fillStyle = skin.id === 's666' ? '#030000' : '#0f172a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             const groundY = canvas.height - 100;
-            ctx.fillStyle = '#1e293b';
+            ctx.fillStyle = skin.id === 's666' ? '#140000' : '#1e293b';
             ctx.fillRect(0, groundY, canvas.width, 100);
-            ctx.strokeStyle = level.color;
+            ctx.strokeStyle = skin.id === 's666' ? '#660000' : level.color;
             ctx.lineWidth = 4;
             ctx.beginPath();
             ctx.moveTo(0, groundY);
@@ -161,7 +203,7 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 if (obsX < -100 || obsX > canvas.width + 100) return;
 
                 if (obs.type === 'spike') {
-                    ctx.fillStyle = isGodMode ? '#ef444444' : '#ef4444';
+                    ctx.fillStyle = isGodMode ? '#ef444444' : (skin.id === 's666' ? '#990000' : '#ef4444');
                     ctx.beginPath();
                     ctx.moveTo(obsX, groundY);
                     ctx.lineTo(obsX + obs.width / 2, groundY - obs.height);
@@ -170,10 +212,10 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 } else if (obs.type === 'block') {
                     ctx.fillStyle = isGodMode ? '#47556944' : '#475569';
                     ctx.fillRect(obsX, groundY - obs.height, obs.width, obs.height);
-                    ctx.strokeStyle = '#fff';
+                    ctx.strokeStyle = skin.id === 's666' ? '#660000' : '#fff';
                     ctx.strokeRect(obsX, groundY - obs.height, obs.width, obs.height);
                 } else if (obs.type === 'gem') {
-                    ctx.fillStyle = '#60a5fa';
+                    ctx.fillStyle = skin.id === 's666' ? '#ff0000' : '#60a5fa';
                     ctx.beginPath();
                     ctx.arc(obsX + obs.width / 2, groundY - obs.height / 2 - 20, obs.width / 2, 0, Math.PI * 2);
                     ctx.fill();
@@ -185,22 +227,24 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
             let pY = player.current.y + player.current.height / 2;
             
             if (skin.isGlitched) {
-                if (Math.random() > 0.75) {
-                    pX += (Math.random() - 0.5) * 20;
-                    pY += (Math.random() - 0.5) * 20;
+                if (Math.random() > 0.65) {
+                    pX += (Math.random() - 0.5) * (skin.id === 's666' ? 35 : 20);
+                    pY += (Math.random() - 0.5) * (skin.id === 's666' ? 35 : 20);
                 }
             }
 
             ctx.translate(pX, pY);
             ctx.rotate(player.current.rotation);
             
-            if (skin.isGlitched) {
-                const glitchColors = ['#00ff41', '#ff0000', '#00ffff', '#ffffff', '#000000', '#f59e0b'];
-                ctx.fillStyle = glitchColors[Math.floor(Date.now() / 60) % glitchColors.length];
-                
-                ctx.globalAlpha = 0.4;
-                ctx.fillRect(-player.current.width / 2 - 12, -player.current.height / 2 + 8, player.current.width, player.current.height);
+            if (skin.id === 's666') {
+                const colors = ['#ff0000', '#000000', '#770000'];
+                ctx.fillStyle = colors[Math.floor(Date.now() / 40) % colors.length];
+                ctx.globalAlpha = 0.5;
+                ctx.fillRect(-player.current.width / 2 - 8, -player.current.height / 2 + 8, player.current.width, player.current.height);
                 ctx.globalAlpha = 1.0;
+            } else if (skin.isGlitched) {
+                const colors = ['#00ff41', '#ff0000', '#ffffff'];
+                ctx.fillStyle = colors[Math.floor(Date.now() / 60) % colors.length];
             } else {
                 ctx.fillStyle = skin.color;
             }
@@ -209,22 +253,13 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.strokeRect(-player.current.width / 2, -player.current.height / 2, player.current.width, player.current.height);
-            
             ctx.restore();
 
-            if (skin.isGlitched && Math.random() > 0.85) {
-                ctx.fillStyle = '#00ff41';
-                ctx.font = 'bold 9px monospace';
-                const texts = ['MEM_ERR', 'NULL_PTR', 'ADMIN_OVR', '0x7F', 'CORRUPT', 'ROOT_ACCESS'];
-                const t = texts[Math.floor(Math.random() * texts.length)];
-                ctx.fillText(t, pX + 50, pY + (Math.random() - 0.5) * 60);
-            }
-
-            if (skin.isGlitched) {
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
-                for (let i = 0; i < canvas.height; i += 4) {
-                    ctx.fillRect(0, i, canvas.width, 1);
-                }
+            if (skin.isGlitched && Math.random() > 0.75) {
+                ctx.fillStyle = skin.id === 's666' ? '#ff0000' : '#00ff41';
+                ctx.font = 'bold 11px monospace';
+                const texts = skin.id === 's666' ? ['FATAL', '666', 'VOID', 'NULL'] : ['ERR', '0x1A', 'NULL', 'ROOT'];
+                ctx.fillText(texts[Math.floor(Math.random() * texts.length)], pX + 45, pY + (Math.random() - 0.5) * 70);
             }
 
             update();
@@ -235,7 +270,10 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
 
         return () => {
             cancelAnimationFrame(animationFrameId);
-            window.removeEventListener('keydown', handleInput);
+            window.removeEventListener('keydown', handleKeyDown);
+            window.removeEventListener('keyup', handleKeyUp);
+            canvas.removeEventListener('mousedown', handleMouseDown);
+            window.removeEventListener('mouseup', handleMouseUp);
         };
     }, [level, skin, onEnd, gemsCollected, isGodMode]);
 
@@ -244,8 +282,7 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
     };
 
     return (
-        <div className="h-full w-full relative flex items-center justify-center bg-black">
-            {/* Admin Panel Overlay */}
+        <div className="h-full w-full relative flex items-center justify-center bg-black overflow-hidden select-none">
             {isAdminOpen && (
                 <AdminPanel 
                     onClose={() => setIsAdminOpen(false)} 
@@ -255,34 +292,55 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 />
             )}
 
-            <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10">
-                <div className="flex flex-col gap-1 pointer-events-auto">
-                    <div className="text-white font-black text-2xl drop-shadow-md uppercase italic tracking-tighter">
-                        {skin.isGlitched ? <span className="text-green-400">#ERR_{level.name}</span> : level.name}
-                    </div>
-                    <div className="text-blue-400 font-bold flex items-center gap-2 mb-2">
-                        <i className="fas fa-gem"></i> {gemsCollected}
-                        {isGodMode && <span className="text-red-500 text-[10px] animate-pulse ml-2">[GOD_MODE]</span>}
+            {/* HUD INTERFACE */}
+            <div className="absolute top-0 left-0 w-full p-6 flex justify-between items-start pointer-events-none z-10">
+                <div className="flex flex-col gap-2 pointer-events-auto">
+                    {/* USERNAME INDICATOR */}
+                    <div className="flex items-center gap-2 mb-1">
+                        <div className="w-8 h-8 rounded-lg bg-gray-800 flex items-center justify-center text-xs border border-white/10">
+                            <i className="fas fa-user text-gray-400"></i>
+                        </div>
+                        <span className="text-white font-bold text-sm tracking-widest uppercase opacity-70">
+                            {username}
+                        </span>
                     </div>
 
-                    {/* ADMIN BUTTON - SPOSTATO A SINISTRA PER ACCESSIBILITÀ MOBILE */}
+                    <div className={`text-white font-black text-3xl drop-shadow-lg uppercase italic tracking-tighter flex items-center gap-3 ${skin.id === 's666' ? 'text-red-600 animate-pulse' : ''}`}>
+                        {skin.id === 's666' ? 'ERROR_666' : (skin.isGlitched ? <span className="text-green-500">#GLITCH_MODE</span> : level.name)}
+                    </div>
+                    
+                    <div className="text-blue-400 font-bold flex items-center gap-3 text-lg">
+                        <i className="fas fa-gem animate-bounce"></i> {gemsCollected}
+                        {isGodMode && <span className="text-red-500 text-xs font-black px-2 py-0.5 bg-red-950/50 rounded border border-red-500 animate-pulse">GOD_MODE</span>}
+                        {skin.canFly && <span className="text-yellow-400 text-xs font-black px-2 py-0.5 bg-yellow-950/50 rounded border border-yellow-500">FLY_ENABLED</span>}
+                    </div>
+
+                    {/* ADMIN PANEL BUTTON - POSITIONED LEFT FOR MOBILE ACCESSIBILITY */}
                     {skin.isGlitched && (
                         <button 
-                            onClick={() => setIsAdminOpen(true)}
-                            className="w-fit bg-green-600 hover:bg-green-500 text-black px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/30 transition-all active:scale-90"
+                            onClick={(e) => { e.stopPropagation(); setIsAdminOpen(true); }}
+                            className={`mt-2 w-fit px-5 py-2.5 rounded-xl text-[11px] font-black uppercase tracking-widest shadow-2xl transition-all active:scale-90 flex items-center gap-2 ${
+                                skin.id === 's666' ? 'bg-red-700 text-white shadow-red-500/40 border border-red-500' : 'bg-green-600 text-black shadow-green-500/40'
+                            }`}
                         >
-                            <i className="fas fa-user-shield mr-1"></i> Admin Panel
+                            <i className="fas fa-terminal"></i> Admin Console
                         </button>
                     )}
                 </div>
                 
                 <div className="flex flex-col items-end pointer-events-none">
-                    <div className="text-white font-black text-4xl italic mb-2">{Math.floor(progress)}%</div>
+                    <div className={`text-white font-black text-5xl italic mb-3 drop-shadow-2xl ${skin.id === 's666' ? 'text-red-600' : ''}`}>
+                        {Math.floor(progress)}%
+                    </div>
                     
-                    <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden border border-white/10">
+                    <div className="w-48 sm:w-72 h-3 bg-gray-900 rounded-full overflow-hidden border border-white/20 p-0.5">
                         <div 
-                            className="h-full transition-all duration-100" 
-                            style={{ width: `${progress}%`, backgroundColor: skin.isGlitched ? '#00ff41' : level.color }}
+                            className="h-full rounded-full transition-all duration-150 ease-out" 
+                            style={{ 
+                                width: `${progress}%`, 
+                                backgroundColor: skin.id === 's666' ? '#ff0000' : (skin.isGlitched ? '#00ff41' : level.color),
+                                boxWidth: '100%'
+                            }}
                         ></div>
                     </div>
                 </div>
@@ -292,19 +350,18 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 ref={canvasRef} 
                 width={window.innerWidth} 
                 height={window.innerHeight}
-                className={`w-full h-full cursor-pointer ${skin.isGlitched ? 'brightness-110' : ''}`}
+                className={`w-full h-full cursor-pointer ${skin.isGlitched ? 'brightness-125 contrast-110' : ''}`}
             />
             
-            <div className={`absolute bottom-12 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full font-black italic tracking-widest text-sm pointer-events-none border ${
-                skin.isGlitched ? 'bg-green-600/20 border-green-500 text-green-500' : 'bg-red-600/20 border-red-500 text-red-500'
+            <div className={`absolute bottom-10 left-1/2 -translate-x-1/2 px-6 py-2 rounded-2xl font-black italic tracking-widest text-sm pointer-events-none border shadow-2xl ${
+                skin.id === 's666' ? 'bg-red-950/60 border-red-600 text-red-500' : 
+                (skin.isGlitched ? 'bg-green-950/60 border-green-500 text-green-500' : 'bg-blue-950/60 border-blue-500 text-blue-400')
             }`}>
-                {level.speedMultiplier}X SPEED
+                <i className="fas fa-bolt mr-2"></i> {level.speedMultiplier}X SPEED
             </div>
 
-            {skin.isGlitched && (
-                <div className="absolute inset-0 pointer-events-none">
-                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-green-500/5 to-transparent animate-pulse"></div>
-                </div>
+            {skin.id === 's666' && (
+                <div className="absolute inset-0 pointer-events-none border-[12px] border-red-900/10 animate-pulse pointer-events-none"></div>
             )}
         </div>
     );

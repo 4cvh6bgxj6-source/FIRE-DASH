@@ -27,6 +27,7 @@ export interface Skin {
     icon: string;
     requiredTier?: 'free' | 'premium' | 'vip';
     isGlitched?: boolean;
+    canFly?: boolean; // Nuova meccanica per ERROR 666
 }
 
 export interface UserStats {
