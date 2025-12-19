@@ -9,23 +9,26 @@ interface Props {
 
 const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
     const forceUpdate = () => {
-        window.location.reload();
+        // Forza un refresh completo pulendo parte della cache se possibile (non standard ma aiuta reload)
+        window.location.href = window.location.origin + window.location.pathname + '?r=' + Date.now();
     };
 
     return (
         <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black font-['Orbitron'] p-4 overflow-hidden">
             {/* Header Profilo */}
-            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10 flex flex-col gap-1">
-                <div className="text-gray-500 text-[10px] md:text-sm uppercase tracking-tighter">Bentornato,</div>
-                <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
-                    {stats.username}
-                    {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
+            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10 flex flex-col gap-2">
+                <div className="flex flex-col gap-0.5">
+                    <div className="text-gray-500 text-[10px] md:text-sm uppercase tracking-tighter">Bentornato,</div>
+                    <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
+                        {stats.username}
+                        {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
+                    </div>
                 </div>
                 <button 
                     onClick={forceUpdate}
-                    className="text-[8px] text-blue-500 font-bold uppercase tracking-widest hover:text-blue-400 text-left"
+                    className="bg-blue-600/20 hover:bg-blue-600/40 border border-blue-500/50 px-3 py-1.5 rounded-lg text-[10px] text-blue-400 font-black uppercase tracking-widest transition-all active:scale-95 flex items-center gap-2 shadow-lg shadow-blue-500/10"
                 >
-                    <i className="fas fa-sync-alt mr-1"></i> Aggiorna Dati
+                    <i className="fas fa-sync-alt animate-spin-slow" style={{animationDuration: '2s'}}></i> Aggiorna Sito
                 </button>
             </div>
 

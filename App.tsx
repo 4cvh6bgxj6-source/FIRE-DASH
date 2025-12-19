@@ -32,6 +32,29 @@ const App: React.FC = () => {
         return now.getMonth() === 11;
     }, []);
 
+    // Sincronizzazione automatica delle skin VIP/Premium
+    useEffect(() => {
+        if (stats.username) {
+            const currentUnlocked = [...unlockedSkins];
+            let changed = false;
+
+            SKINS.forEach(skin => {
+                if (skin.requiredTier === 'vip' && stats.isVip && !currentUnlocked.includes(skin.id)) {
+                    currentUnlocked.push(skin.id);
+                    changed = true;
+                }
+                if (skin.requiredTier === 'premium' && (stats.isPremium || stats.isVip) && !currentUnlocked.includes(skin.id)) {
+                    currentUnlocked.push(skin.id);
+                    changed = true;
+                }
+            });
+
+            if (changed) {
+                setUnlockedSkins(currentUnlocked);
+            }
+        }
+    }, [stats.isVip, stats.isPremium]);
+
     useEffect(() => {
         const params = new URLSearchParams(window.location.search);
         const challenger = params.get('challenge');
@@ -154,7 +177,7 @@ const App: React.FC = () => {
     };
 
     const getEffectiveLevel = (level: Level) => {
-        if (stats.isVip && level.id === '4') return { ...level, speedMultiplier: 2 };
+        if (stats.isVip && level.id === '8') return { ...level, speedMultiplier: 2 };
         return level;
     };
 
