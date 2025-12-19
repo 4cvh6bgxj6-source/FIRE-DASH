@@ -33,7 +33,7 @@ export const SKINS: Skin[] = [
     // Secrets
     { 
         id: 's8', 
-        name: 'Hacker Glitch', 
+        name: 'Admin Glitch', 
         color: '#00ff41', 
         cost: 999, 
         unlocked: false, 
@@ -43,7 +43,7 @@ export const SKINS: Skin[] = [
     },
     { 
         id: 's666', 
-        name: 'Demon Skull', 
+        name: 'Error 666', 
         color: '#ff0000', 
         cost: 0, 
         unlocked: false, 

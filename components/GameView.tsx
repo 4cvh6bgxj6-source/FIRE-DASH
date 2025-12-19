@@ -21,7 +21,11 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     const [gemsCollected, setGemsCollected] = useState(0);
     const [gameStatus, setGameStatus] = useState<'playing' | 'won' | 'lost'>('playing');
     const [showAdminPanel, setShowAdminPanel] = useState(false);
+    
+    // Admin Cheats State
     const [isGodMode, setIsGodMode] = useState(false);
+    const [adminFly, setAdminFly] = useState(false); // Fly Hack
+    const [adminSpeed, setAdminSpeed] = useState(1); // Speed Hack (1x, 2x, 3x)
     
     const inputHeld = useRef(false);
     const player = useRef({
@@ -34,11 +38,14 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         levelLength: 8000
     });
 
-    const isError666 = skin.id === 's666';
-    const isAdminGlitch = skin.id === 's8';
+    const isError666 = skin.id === 's666'; // Error 666 (ex Demon Skull)
+    const isAdminGlitch = skin.id === 's8'; // Admin Glitch
     const isOmino = skin.id === 's-man';
     
     const hasAdminAccess = isError666 || isAdminGlitch;
+
+    // Determina se il giocatore può volare (o per skin nativa o per hack)
+    const canFlyActive = skin.canFly || adminFly;
 
     const initLevel = () => {
         const obstacles: typeof world.current.obstacles = [];
@@ -74,7 +81,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         const handleInput = (active: boolean) => {
             if (gameStatus !== 'playing') return;
             inputHeld.current = active;
-            if (!skin.canFly && active && player.current.isGrounded) {
+            // Salto normale solo se NON si vola e si è a terra
+            if (!canFlyActive && active && player.current.isGrounded) {
                 player.current.dy = JUMP_FORCE;
                 player.current.isGrounded = false;
             }
@@ -92,7 +100,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             
             if (isOmino) {
                 // --- OMINO BIANCO (STICKMAN) ---
-                // Disegno manuale per l'omino che corre
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
@@ -112,45 +119,48 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(-legSpread, 18); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(legSpread, 18); ctx.stroke();
             } else {
-                // --- TUTTE LE ALTRE SKIN (ICONE) ---
-                if (!skin.canFly) ctx.rotate(player.current.rotation);
+                // --- TUTTE LE ALTRE SKIN ---
+                // Se vola, ruota leggermente in base alla velocità verticale, altrimenti rotazione classica
+                if (canFlyActive) {
+                    const flyAngle = Math.max(-0.5, Math.min(0.5, player.current.dy * 0.1));
+                    ctx.rotate(flyAngle);
+                } else {
+                    ctx.rotate(player.current.rotation);
+                }
                 
                 ctx.fillStyle = skin.color;
-                // Effetto glitch per Admin e 666
+                
+                // Effetti glitch sui colori del player
                 if (isAdminGlitch && Math.random() > 0.85) ctx.fillStyle = '#ffffff';
-                if (isError666 && Math.random() > 0.9) ctx.fillStyle = '#ff0000';
+                if (isError666 && Math.random() > 0.9) ctx.fillStyle = '#330000'; // Dark red per horror
                 
                 ctx.shadowBlur = (isError666 || isGodMode) ? 20 : 10;
                 ctx.shadowColor = skin.color;
+                if (isError666) ctx.shadowColor = '#ff0000';
 
-                // Mappa Completa Icone FontAwesome 6 (Solid)
-                // Deve corrispondere a 'constants.ts'
                 const iconMap: Record<string, string> = { 
-                    'fa-square': '\uf0c8',      // s1 - Cubo
-                    'fa-cat': '\uf6be',         // s2 - Gatto
-                    'fa-dragon': '\uf6d5',      // s3 - Drago
-                    'fa-crown': '\uf521',       // s4 - Corona (King)
-                    'fa-running': '\uf70c',     // s-man (fallback icon)
-                    'fa-bolt': '\uf0e7',        // s6 - Fulmine
-                    'fa-robot': '\uf544',       // s9 - Robot
-                    'fa-sun': '\uf185',         // s7 - Sole
-                    'fa-spider': '\uf717',      // s10 - Ragno
-                    'fa-user-secret': '\uf21b', // s8 - ADMIN GLITCH (Hacker)
-                    'fa-skull': '\uf54c'        // s666 - Teschio
+                    'fa-square': '\uf0c8',
+                    'fa-cat': '\uf6be',
+                    'fa-dragon': '\uf6d5',
+                    'fa-crown': '\uf521',
+                    'fa-running': '\uf70c',
+                    'fa-bolt': '\uf0e7',
+                    'fa-robot': '\uf544',
+                    'fa-sun': '\uf185',
+                    'fa-spider': '\uf717',
+                    'fa-user-secret': '\uf21b',
+                    'fa-skull': '\uf54c'
                 };
                 
-                // IMPORTANTE: '900' è il font-weight necessario per le icone Solid
                 ctx.font = '900 36px "Font Awesome 6 Free"';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 
-                const iconChar = iconMap[skin.icon] || '\uf0c8'; // Default quadrato se non trova icona
-                
-                // Disegna l'icona piena
+                const iconChar = iconMap[skin.icon] || '\uf0c8'; 
                 ctx.fillText(iconChar, 0, 0);
                 
-                // Disegna il bordo bianco
                 ctx.strokeStyle = 'white';
+                if (isError666) ctx.strokeStyle = '#000000'; // Outline nera per Error 666
                 ctx.lineWidth = 1.5;
                 ctx.strokeText(iconChar, 0, 0);
             }
@@ -160,9 +170,14 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         const render = () => {
             if (gameStatus !== 'playing') return;
 
-            if (skin.canFly && inputHeld.current) player.current.dy -= 0.85;
+            // Logica Volo: Se active (per skin o admin), inputHeld spinge su
+            if (canFlyActive && inputHeld.current) player.current.dy -= 0.85;
+            
             player.current.dy += GAME_GRAVITY;
-            if (skin.canFly) player.current.dy = Math.max(-7, Math.min(7, player.current.dy));
+            
+            // Cap velocità verticale se si vola
+            if (canFlyActive) player.current.dy = Math.max(-7, Math.min(7, player.current.dy));
+            
             player.current.y += player.current.dy;
 
             const groundY = canvas.height - 100;
@@ -173,10 +188,12 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 player.current.rotation = Math.round(player.current.rotation / (Math.PI / 2)) * (Math.PI / 2);
             } else {
                 player.current.isGrounded = false;
-                if (!isOmino) player.current.rotation += 0.18 * level.speedMultiplier;
+                if (!isOmino && !canFlyActive) player.current.rotation += (0.18 * level.speedMultiplier * adminSpeed);
             }
 
-            world.current.x += BASE_SPEED * level.speedMultiplier;
+            // Movimento Mondo con Moltiplicatore Admin Speed
+            world.current.x += BASE_SPEED * level.speedMultiplier * adminSpeed;
+            
             const prog = Math.min(100, (world.current.x / world.current.levelLength) * 100);
             setProgress(prog);
             if (prog >= 100) setGameStatus('won');
@@ -204,30 +221,106 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 }
             }
 
+            // --- RENDERING MAPPA ---
+            // Glitch Effect logic
+            let shakeX = 0;
+            let shakeY = 0;
+            
+            // Effetto Tremolio: Per Admin Glitch e Error 666 (più forte per 666)
+            if (isAdminGlitch && Math.random() > 0.92) {
+                shakeX = (Math.random() - 0.5) * 15;
+                shakeY = (Math.random() - 0.5) * 15;
+            } else if (isError666 && Math.random() > 0.8) {
+                shakeX = (Math.random() - 0.5) * 25; // Tremolio Horror più forte
+                shakeY = (Math.random() - 0.5) * 25;
+            }
+
+            ctx.save();
+            ctx.translate(shakeX, shakeY);
+
+            // Sfondo
             ctx.fillStyle = '#0a0a1a';
+            if (isAdminGlitch && Math.random() > 0.96) {
+                 ctx.fillStyle = Math.random() > 0.5 ? '#001100' : '#1a0a0a'; 
+            }
+            if (isError666) {
+                // Sfondo Horror: Rosso scuro pulsante
+                ctx.fillStyle = Math.random() > 0.9 ? '#330000' : '#1a0505';
+            }
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
+            // Pavimento
             ctx.fillStyle = '#050510';
+            if (isError666) ctx.fillStyle = '#1a0000'; // Pavimento rosso sangue
             ctx.fillRect(0, groundY, canvas.width, 100);
-            ctx.strokeStyle = level.color; ctx.lineWidth = 3; ctx.strokeRect(0, groundY, canvas.width, 2);
+            
+            ctx.strokeStyle = level.color; 
+            if (isError666) ctx.strokeStyle = '#ff0000'; // Linea rossa
+            ctx.lineWidth = 3; 
+            ctx.strokeRect(0, groundY, canvas.width, 2);
 
             world.current.obstacles.forEach(o => {
                 const ox = o.x - world.current.x;
                 if (ox < -100 || ox > canvas.width + 100) return;
                 
+                // Colori Default
+                let obsColorSpike = '#ff4444';
+                let obsColorBlock = '#334466';
+
+                // Modifiche Admin Glitch
+                if (isAdminGlitch && Math.random() > 0.95) {
+                    obsColorSpike = '#00ff41'; // Matrix green
+                    obsColorBlock = '#00ff41';
+                }
+
+                // Modifiche Error 666 (Horror)
+                if (isError666) {
+                    obsColorSpike = '#880000'; // Sangue
+                    obsColorBlock = '#220000'; // Nero/Rosso
+                    // Occasionale distorsione
+                    if (Math.random() > 0.9) {
+                        obsColorSpike = '#ffffff'; // Flash bianco
+                    }
+                }
+
                 if (o.type === 'spike') {
-                    ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+20, groundY-40); ctx.lineTo(ox+40, groundY); ctx.fill();
-                    ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.stroke();
+                    ctx.fillStyle = obsColorSpike; ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+20, groundY-40); ctx.lineTo(ox+40, groundY); ctx.fill();
+                    ctx.strokeStyle = isError666 ? '#ff0000' : 'white'; ctx.lineWidth = 1; ctx.stroke();
                 } else if (o.type === 'block') {
-                    ctx.fillStyle = '#334466'; ctx.fillRect(ox, groundY-o.height, o.width, o.height);
-                    ctx.strokeStyle = '#ffffff55'; ctx.strokeRect(ox, groundY-o.height, o.width, o.height);
+                    ctx.fillStyle = obsColorBlock; ctx.fillRect(ox, groundY-o.height, o.width, o.height);
+                    ctx.strokeStyle = isError666 ? '#ff0000' : '#ffffff55'; ctx.strokeRect(ox, groundY-o.height, o.width, o.height);
                 } else if (o.type === 'gem') {
                     ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(ox+15, groundY-45, 10, 0, Math.PI*2); ctx.fill();
                     ctx.strokeStyle = 'white'; ctx.stroke();
                 }
             });
 
+            // Random visual artifacts
+            if (isAdminGlitch && Math.random() > 0.85) {
+                ctx.fillStyle = `rgba(${Math.random()*255}, ${Math.random()*255}, ${Math.random()*255}, 0.2)`;
+                ctx.fillRect(Math.random() * canvas.width, Math.random() * canvas.height, Math.random() * 200, Math.random() * 20);
+            }
+
+            // Horror Overlay per Error 666
+            if (isError666) {
+                // Vignettatura rossa
+                const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, canvas.height/4, canvas.width/2, canvas.height/2, canvas.height);
+                gradient.addColorStop(0, 'transparent');
+                gradient.addColorStop(1, 'rgba(100, 0, 0, 0.4)');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+                // Static noise casuale
+                if (Math.random() > 0.85) {
+                    ctx.fillStyle = `rgba(255, 0, 0, ${Math.random() * 0.1})`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+            }
+            
             drawPlayer(px, player.current.y);
+
+            ctx.restore(); // Restore shake transform
+            
             animationFrameId = requestAnimationFrame(render);
         };
 
@@ -237,7 +330,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             window.removeEventListener('keydown', onKey);
             window.removeEventListener('keyup', onKeyUp);
         };
-    }, [gameStatus, level, skin, isGodMode]);
+    }, [gameStatus, level, skin, isGodMode, adminFly, adminSpeed, canFlyActive, isAdminGlitch, isError666]);
 
     return (
         <div className="h-full w-full relative bg-black overflow-hidden">
@@ -255,7 +348,12 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                     onClose={() => setShowAdminPanel(false)} 
                     onInstantWin={() => { setGameStatus('won'); setShowAdminPanel(false); }} 
                     onToggleGodMode={setIsGodMode} 
-                    isGodMode={isGodMode} 
+                    isGodMode={isGodMode}
+                    onToggleFly={setAdminFly}
+                    isFlyMode={adminFly}
+                    onSetSpeed={setAdminSpeed}
+                    currentSpeed={adminSpeed}
+                    restrictedView={isAdminGlitch} // Limita le opzioni se è Admin Glitch
                 />
             )}
             
@@ -296,7 +394,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                         {gameStatus === 'lost' && (
                             <>
                                 <h2 className="text-5xl font-black italic mb-6 uppercase tracking-tighter text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,0.8)] shake-animation">
-                                    HAI PERSO!
+                                    {isError666 ? 'ERROR 666... FATAL' : 'HAI PERSO!'}
                                 </h2>
                                 
                                 <div className="flex flex-col gap-4 mt-4">
@@ -324,9 +422,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 width={window.innerWidth} 
                 height={window.innerHeight} 
                 className="w-full h-full"
-                onMouseDown={(e) => { e.preventDefault(); if(gameStatus === 'playing') { inputHeld.current = true; if(!skin.canFly && player.current.isGrounded) { player.current.dy = JUMP_FORCE; player.current.isGrounded = false; } } }}
+                onMouseDown={(e) => { e.preventDefault(); if(gameStatus === 'playing') { inputHeld.current = true; if(!canFlyActive && player.current.isGrounded) { player.current.dy = JUMP_FORCE; player.current.isGrounded = false; } } }}
                 onMouseUp={(e) => { e.preventDefault(); inputHeld.current = false; }}
-                onTouchStart={(e) => { e.preventDefault(); if(gameStatus === 'playing') { inputHeld.current = true; if(!skin.canFly && player.current.isGrounded) { player.current.dy = JUMP_FORCE; player.current.isGrounded = false; } } }}
+                onTouchStart={(e) => { e.preventDefault(); if(gameStatus === 'playing') { inputHeld.current = true; if(!canFlyActive && player.current.isGrounded) { player.current.dy = JUMP_FORCE; player.current.isGrounded = false; } } }}
                 onTouchEnd={(e) => { e.preventDefault(); inputHeld.current = false; }}
             />
         </div>

@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 
 interface Props {
@@ -41,16 +40,20 @@ const LoginScreen: React.FC<Props> = ({ onLogin }) => {
                         className="w-full bg-black/50 border border-gray-600 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-red-500 transition-all text-lg font-bold"
                         required
                     />
-                    <div className="mt-3 flex items-start gap-2 bg-emerald-500/10 border border-emerald-500/20 p-3 rounded-xl">
-                        <i className="fas fa-save text-emerald-400 text-xs mt-0.5"></i>
-                        <p className="text-[9px] text-emerald-400 font-bold italic uppercase leading-tight tracking-tighter">
-                            ACCOUNT LOCALE: I PROGRESSI VENGONO SALVATI SOLO SU QUESTO DISPOSITIVO.
+                    
+                    {/* Box informativo migliorato per leggibilità */}
+                    <div className="mt-4 flex items-start gap-3 bg-black/80 border border-emerald-500/50 p-4 rounded-xl shadow-lg backdrop-blur-md">
+                        <i className="fas fa-save text-emerald-400 text-sm mt-0.5 animate-pulse"></i>
+                        <p className="text-xs text-emerald-200 font-bold uppercase leading-relaxed tracking-wide shadow-black drop-shadow-md">
+                            Account Locale: I progressi vengono salvati solo su questo dispositivo.
                         </p>
                     </div>
                 </div>
 
                 <div className="relative z-10">
-                    <label className="block text-gray-400 text-[10px] uppercase font-bold mb-2 ml-1 tracking-widest">Codice Segreto (Premium/Vip/666)</label>
+                    <label className="block text-gray-400 text-[10px] uppercase font-bold mb-2 ml-1 tracking-widest">
+                        Codice Segreto <span className="text-xs text-gray-500 normal-case tracking-normal ml-2 opacity-80">(opzionale)</span>
+                    </label>
                     <input 
                         type="password" 
                         value={secretCode}
