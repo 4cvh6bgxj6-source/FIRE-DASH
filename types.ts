@@ -25,6 +25,8 @@ export interface Skin {
     cost: number;
     unlocked: boolean;
     icon: string;
+    requiredTier?: 'free' | 'premium' | 'vip';
+    isGlitched?: boolean;
 }
 
 export interface UserStats {

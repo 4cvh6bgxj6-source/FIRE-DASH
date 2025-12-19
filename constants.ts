@@ -9,11 +9,21 @@ export const LEVELS: Level[] = [
 ];
 
 export const SKINS: Skin[] = [
-    { id: 's1', name: 'Basic Cube', color: '#3b82f6', cost: 0, unlocked: true, icon: 'fa-square' },
-    { id: 's2', name: 'Neon Green', color: '#10b981', cost: 50, unlocked: false, icon: 'fa-cube' },
-    { id: 's3', name: 'Ruby Blaze', color: '#ef4444', cost: 150, unlocked: false, icon: 'fa-diamond' },
-    { id: 's4', name: 'Golden God', color: '#f59e0b', cost: 500, unlocked: false, icon: 'fa-crown' },
-    { id: 's5', name: 'Shadow Stalker', color: '#4b5563', cost: 1000, unlocked: false, icon: 'fa-ghost' },
+    { id: 's1', name: 'Basic Cube', color: '#3b82f6', cost: 0, unlocked: true, icon: 'fa-square', requiredTier: 'free' },
+    { id: 's2', name: 'Neon Green', color: '#10b981', cost: 50, unlocked: false, icon: 'fa-cube', requiredTier: 'free' },
+    { id: 's3', name: 'Ruby Blaze', color: '#ef4444', cost: 150, unlocked: false, icon: 'fa-diamond', requiredTier: 'free' },
+    { id: 's4', name: 'Golden God', color: '#f59e0b', cost: 500, unlocked: false, icon: 'fa-crown', requiredTier: 'free' },
+    
+    // Exclusive Premium Skins
+    { id: 's6', name: 'Neon Spark', color: '#ff00ff', cost: 0, unlocked: false, icon: 'fa-bolt', requiredTier: 'premium' },
+    { id: 's9', name: 'Matrix Runner', color: '#003b00', cost: 300, unlocked: false, icon: 'fa-terminal', requiredTier: 'premium' },
+    
+    // Exclusive VIP Skins
+    { id: 's7', name: 'Gold Void', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
+    { id: 's10', name: 'Fire Lord', color: '#ff4500', cost: 450, unlocked: false, icon: 'fa-fire', requiredTier: 'vip' },
+    
+    // SPECIAL ADMIN SKIN - BUGGATA
+    { id: 's8', name: 'ADMIN GLITCH', color: '#00ff41', cost: 999, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
 ];
 
 export const GAME_GRAVITY = 0.6;

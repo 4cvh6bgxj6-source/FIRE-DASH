@@ -89,11 +89,21 @@ const App: React.FC = () => {
     const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
 
     const handleGameOver = (success: boolean, gemsCollected: number) => {
+        let totalReward = gemsCollected;
+        
+        // Base completion bonus
         if (success) {
-            setStats(prev => ({ ...prev, gems: prev.gems + gemsCollected + 50 }));
-        } else {
-            setStats(prev => ({ ...prev, gems: prev.gems + gemsCollected }));
+            totalReward += 50;
         }
+
+        // Membership Bonuses
+        if (stats.isVip) {
+            totalReward *= 2; // 100% bonus
+        } else if (stats.isPremium) {
+            totalReward = Math.floor(totalReward * 1.5); // 50% bonus
+        }
+
+        setStats(prev => ({ ...prev, gems: prev.gems + totalReward }));
         setView(AppState.LEVEL_SELECT);
     };
 
@@ -177,6 +187,7 @@ const App: React.FC = () => {
                     unlockedSkins={unlockedSkins}
                     selectedSkinId={stats.selectedSkinId}
                     gems={stats.gems}
+                    stats={stats}
                     isChristmasSeason={isChristmasSeason}
                     onUnlock={handleUnlockSkin}
                     onSelect={handleSelectSkin}

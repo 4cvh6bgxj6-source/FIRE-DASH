@@ -14,7 +14,6 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
     const [progress, setProgress] = useState(0);
     const [gemsCollected, setGemsCollected] = useState(0);
     
-    // Internal game state refs to avoid re-renders
     const player = useRef({
         y: 300,
         dy: 0,
@@ -31,18 +30,17 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
     });
 
     useEffect(() => {
-        // Initialize obstacles for this level
         const obstacles: typeof world.current.obstacles = [];
-        const levelLength = 5000;
+        const levelLength = 6000;
         
-        for (let i = 800; i < levelLength; i += (400 / level.speedMultiplier)) {
+        for (let i = 800; i < levelLength; i += (450 / level.speedMultiplier)) {
             const rand = Math.random();
-            if (rand < 0.4) {
+            if (rand < 0.45) {
                 obstacles.push({ x: i, width: 40, height: 40, type: 'spike' });
-            } else if (rand < 0.7) {
+            } else if (rand < 0.75) {
                 obstacles.push({ x: i, width: 60, height: 60, type: 'block' });
-                if (Math.random() > 0.5) {
-                    obstacles.push({ x: i + 10, width: 30, height: 30, type: 'gem' });
+                if (Math.random() > 0.4) {
+                    obstacles.push({ x: i + 15, width: 30, height: 30, type: 'gem' });
                 }
             } else {
                  obstacles.push({ x: i, width: 30, height: 30, type: 'gem' });
@@ -72,23 +70,19 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
         const update = () => {
             if (world.current.finished) return;
 
-            // Physics
             player.current.dy += GAME_GRAVITY;
             player.current.y += player.current.dy;
 
-            // Ground collision
             const groundY = canvas.height - 100;
             if (player.current.y + player.current.height > groundY) {
                 player.current.y = groundY - player.current.height;
                 player.current.dy = 0;
                 player.current.isGrounded = true;
-                // Snap rotation to 90deg increments when on ground
                 player.current.rotation = Math.round(player.current.rotation / (Math.PI / 2)) * (Math.PI / 2);
             } else {
                 player.current.rotation += 0.15 * level.speedMultiplier;
             }
 
-            // Move world
             world.current.x += BASE_SPEED * level.speedMultiplier;
             const currentProgress = Math.min(100, (world.current.x / levelLength) * 100);
             setProgress(currentProgress);
@@ -98,17 +92,15 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 onEnd(true, gemsCollected);
             }
 
-            // Collisions
-            const px = 150; // Player fixed X screen position
+            const px = 150;
             for (let i = 0; i < world.current.obstacles.length; i++) {
                 const obs = world.current.obstacles[i];
                 const obsX = obs.x - world.current.x;
 
-                // Simple AABB collision
                 if (
                     px < obsX + obs.width &&
                     px + player.current.width > obsX &&
-                    player.current.y < groundY - 0 + obs.height && // Adjust based on obs type
+                    player.current.y < groundY - 0 + obs.height &&
                     player.current.y + player.current.height > groundY - obs.height
                 ) {
                     if (obs.type === 'gem') {
@@ -116,7 +108,6 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                         world.current.obstacles.splice(i, 1);
                         continue;
                     }
-                    // Crash
                     world.current.finished = true;
                     onEnd(false, gemsCollected);
                     return;
@@ -127,11 +118,26 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
         const draw = () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Draw Background
+            // Background Glitch for Admin
+            if (skin.isGlitched) {
+                if (Math.random() > 0.95) {
+                    ctx.fillStyle = `rgba(${Math.random()*50}, 255, ${Math.random()*50}, 0.08)`;
+                    ctx.fillRect(0, 0, canvas.width, canvas.height);
+                }
+                if (Math.random() > 0.9) {
+                    ctx.strokeStyle = '#00ff41';
+                    ctx.lineWidth = 0.5;
+                    const ry = Math.random() * canvas.height;
+                    ctx.beginPath();
+                    ctx.moveTo(0, ry);
+                    ctx.lineTo(canvas.width, ry);
+                    ctx.stroke();
+                }
+            }
+
             ctx.fillStyle = '#0f172a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw Ground
             const groundY = canvas.height - 100;
             ctx.fillStyle = '#1e293b';
             ctx.fillRect(0, groundY, canvas.width, 100);
@@ -142,7 +148,7 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
             ctx.lineTo(canvas.width, groundY);
             ctx.stroke();
 
-            // Draw Obstacles
+            // Obstacles
             world.current.obstacles.forEach(obs => {
                 const obsX = obs.x - world.current.x;
                 if (obsX < -100 || obsX > canvas.width + 100) return;
@@ -154,9 +160,6 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                     ctx.lineTo(obsX + obs.width / 2, groundY - obs.height);
                     ctx.lineTo(obsX + obs.width, groundY);
                     ctx.fill();
-                    // Glow
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = '#ef4444';
                 } else if (obs.type === 'block') {
                     ctx.fillStyle = '#475569';
                     ctx.fillRect(obsX, groundY - obs.height, obs.width, obs.height);
@@ -168,26 +171,58 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                     ctx.arc(obsX + obs.width / 2, groundY - obs.height / 2 - 20, obs.width / 2, 0, Math.PI * 2);
                     ctx.fill();
                 }
-                ctx.shadowBlur = 0;
             });
 
-            // Draw Player
+            // Player Draw with Glitch
             ctx.save();
-            ctx.translate(150 + player.current.width / 2, player.current.y + player.current.height / 2);
+            let pX = 150 + player.current.width / 2;
+            let pY = player.current.y + player.current.height / 2;
+            
+            if (skin.isGlitched) {
+                if (Math.random() > 0.75) {
+                    pX += (Math.random() - 0.5) * 20;
+                    pY += (Math.random() - 0.5) * 20;
+                }
+            }
+
+            ctx.translate(pX, pY);
             ctx.rotate(player.current.rotation);
             
-            // Skin rendering
-            ctx.fillStyle = skin.color;
+            if (skin.isGlitched) {
+                const glitchColors = ['#00ff41', '#ff0000', '#00ffff', '#ffffff', '#000000', '#f59e0b'];
+                ctx.fillStyle = glitchColors[Math.floor(Date.now() / 60) % glitchColors.length];
+                
+                // Ghost frame glitch
+                ctx.globalAlpha = 0.4;
+                ctx.fillRect(-player.current.width / 2 - 12, -player.current.height / 2 + 8, player.current.width, player.current.height);
+                ctx.globalAlpha = 1.0;
+            } else {
+                ctx.fillStyle = skin.color;
+            }
+            
             ctx.fillRect(-player.current.width / 2, -player.current.height / 2, player.current.width, player.current.height);
             ctx.strokeStyle = '#fff';
             ctx.lineWidth = 2;
             ctx.strokeRect(-player.current.width / 2, -player.current.height / 2, player.current.width, player.current.height);
             
-            // Player face/detail
-            ctx.fillStyle = 'rgba(255,255,255,0.3)';
-            ctx.fillRect(5, -15, 10, 10);
-            ctx.fillRect(-15, -15, 10, 10);
             ctx.restore();
+
+            // Admin system text overlays
+            if (skin.isGlitched && Math.random() > 0.85) {
+                ctx.fillStyle = '#00ff41';
+                ctx.font = 'bold 9px monospace';
+                const texts = ['MEM_ERR', 'NULL_PTR', 'ADMIN_OVR', '0x7F', 'CORRUPT', 'ROOT_ACCESS'];
+                const t = texts[Math.floor(Math.random() * texts.length)];
+                ctx.fillText(t, pX + 50, pY + (Math.random() - 0.5) * 60);
+            }
+
+            // CRT Scanline Overlay
+            if (skin.isGlitched) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+                for (let i = 0; i < canvas.height; i += 4) {
+                    ctx.fillRect(0, i, canvas.width, 1);
+                }
+            }
 
             update();
             animationFrameId = requestAnimationFrame(draw);
@@ -203,10 +238,11 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
 
     return (
         <div className="h-full w-full relative flex items-center justify-center bg-black">
-            {/* HUD */}
-            <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none">
+            <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10">
                 <div className="flex flex-col gap-1">
-                    <div className="text-white font-black text-2xl drop-shadow-md">{level.name}</div>
+                    <div className="text-white font-black text-2xl drop-shadow-md uppercase italic tracking-tighter">
+                        {skin.isGlitched ? <span className="text-green-400">#ERR_{level.name}</span> : level.name}
+                    </div>
                     <div className="text-blue-400 font-bold flex items-center gap-2">
                         <i className="fas fa-gem"></i> {gemsCollected}
                     </div>
@@ -217,7 +253,7 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                     <div className="w-64 h-2 bg-gray-800 rounded-full mt-2 overflow-hidden border border-white/10">
                         <div 
                             className="h-full transition-all duration-100" 
-                            style={{ width: `${progress}%`, backgroundColor: level.color }}
+                            style={{ width: `${progress}%`, backgroundColor: skin.isGlitched ? '#00ff41' : level.color }}
                         ></div>
                     </div>
                 </div>
@@ -227,13 +263,21 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
                 ref={canvasRef} 
                 width={window.innerWidth} 
                 height={window.innerHeight}
-                className="w-full h-full cursor-pointer"
+                className={`w-full h-full cursor-pointer ${skin.isGlitched ? 'brightness-110' : ''}`}
             />
             
-            {/* Speed Badge */}
-            <div className="absolute bottom-12 left-1/2 -translate-x-1/2 bg-red-600/20 border border-red-500/50 px-4 py-1 rounded-full text-red-500 font-black italic tracking-widest text-sm">
-                VELOCITÀ {level.speedMultiplier}X
+            <div className={`absolute bottom-12 left-1/2 -translate-x-1/2 px-4 py-1 rounded-full font-black italic tracking-widest text-sm pointer-events-none border ${
+                skin.isGlitched ? 'bg-green-600/20 border-green-500 text-green-500' : 'bg-red-600/20 border-red-500 text-red-500'
+            }`}>
+                {level.speedMultiplier}X SPEED
             </div>
+
+            {skin.isGlitched && (
+                <div className="absolute inset-0 pointer-events-none">
+                    <div className="absolute top-0 left-0 w-full h-full bg-gradient-to-b from-green-500/5 to-transparent animate-pulse"></div>
+                    <div className="absolute top-4 left-1/2 -translate-x-1/2 text-[8px] font-mono text-green-400 opacity-30">SECURITY_BYPASS_ACTIVE // UID: {Math.random().toString(36).substr(2, 9)}</div>
+                </div>
+            )}
         </div>
     );
 };
