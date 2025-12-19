@@ -256,29 +256,29 @@ const GameView: React.FC<Props> = ({ level, skin, onEnd }) => {
             )}
 
             <div className="absolute top-0 left-0 w-full p-4 flex justify-between items-start pointer-events-none z-10">
-                <div className="flex flex-col gap-1">
+                <div className="flex flex-col gap-1 pointer-events-auto">
                     <div className="text-white font-black text-2xl drop-shadow-md uppercase italic tracking-tighter">
                         {skin.isGlitched ? <span className="text-green-400">#ERR_{level.name}</span> : level.name}
                     </div>
-                    <div className="text-blue-400 font-bold flex items-center gap-2">
+                    <div className="text-blue-400 font-bold flex items-center gap-2 mb-2">
                         <i className="fas fa-gem"></i> {gemsCollected}
                         {isGodMode && <span className="text-red-500 text-[10px] animate-pulse ml-2">[GOD_MODE]</span>}
                     </div>
-                </div>
-                
-                <div className="flex flex-col items-end pointer-events-auto">
-                    <div className="text-white font-black text-4xl italic mb-2">{Math.floor(progress)}%</div>
-                    
-                    {/* ADMIN BUTTON - Visible only with Admin Glitch Skin */}
+
+                    {/* ADMIN BUTTON - SPOSTATO A SINISTRA PER ACCESSIBILITÀ MOBILE */}
                     {skin.isGlitched && (
                         <button 
                             onClick={() => setIsAdminOpen(true)}
-                            className="bg-green-600 hover:bg-green-500 text-black px-4 py-1 rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/30 transition-all active:scale-90 mb-2"
+                            className="w-fit bg-green-600 hover:bg-green-500 text-black px-4 py-1.5 rounded-md text-[10px] font-black uppercase tracking-widest shadow-lg shadow-green-500/30 transition-all active:scale-90"
                         >
                             <i className="fas fa-user-shield mr-1"></i> Admin Panel
                         </button>
                     )}
-
+                </div>
+                
+                <div className="flex flex-col items-end pointer-events-none">
+                    <div className="text-white font-black text-4xl italic mb-2">{Math.floor(progress)}%</div>
+                    
                     <div className="w-64 h-2 bg-gray-800 rounded-full overflow-hidden border border-white/10">
                         <div 
                             className="h-full transition-all duration-100" 
