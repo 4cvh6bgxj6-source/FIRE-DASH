@@ -1,0 +1,36 @@
+
+export enum AppState {
+    LOGIN = 'LOGIN',
+    MENU = 'MENU',
+    LEVEL_SELECT = 'LEVEL_SELECT',
+    GAME = 'GAME',
+    SHOP = 'SHOP',
+    SKINS = 'SKINS',
+    GIFT_SHOP = 'GIFT_SHOP'
+}
+
+export interface Level {
+    id: string;
+    name: string;
+    difficulty: 'Easy' | 'Normal' | 'Hard' | 'Insane' | 'Demon' | 'Extreme';
+    speedMultiplier: number;
+    color: string;
+    locked?: boolean;
+}
+
+export interface Skin {
+    id: string;
+    name: string;
+    color: string;
+    cost: number;
+    unlocked: boolean;
+    icon: string;
+}
+
+export interface UserStats {
+    username: string;
+    gems: number;
+    isPremium: boolean;
+    isVip: boolean;
+    selectedSkinId: string;
+}
