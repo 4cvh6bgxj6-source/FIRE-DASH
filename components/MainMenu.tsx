@@ -8,21 +8,31 @@ interface Props {
 }
 
 const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
+    const forceUpdate = () => {
+        window.location.reload();
+    };
+
     return (
         <div className="flex flex-col items-center justify-center h-full w-full bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-900 to-black font-['Orbitron'] p-4 overflow-hidden">
-            {/* Header Profilo - Più compatto su mobile */}
-            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10">
-                <div className="text-gray-500 text-[10px] md:text-sm mb-0 md:mb-1 uppercase tracking-tighter">Bentornato,</div>
+            {/* Header Profilo */}
+            <div className="absolute top-4 left-4 md:top-8 md:left-8 z-10 flex flex-col gap-1">
+                <div className="text-gray-500 text-[10px] md:text-sm uppercase tracking-tighter">Bentornato,</div>
                 <div className={`text-lg md:text-2xl font-black flex items-center gap-2 ${stats.isVip ? 'rainbow-text' : 'text-white'}`}>
                     {stats.username}
                     {stats.isVip && <i className="fas fa-certificate text-yellow-400 text-xs animate-pulse"></i>}
                 </div>
+                <button 
+                    onClick={forceUpdate}
+                    className="text-[8px] text-blue-500 font-bold uppercase tracking-widest hover:text-blue-400 text-left"
+                >
+                    <i className="fas fa-sync-alt mr-1"></i> Aggiorna Dati
+                </button>
             </div>
 
-            {/* Grid Pulsanti - Rimossa la scala fissa per evitare bug di tocco */}
+            {/* Grid Pulsanti */}
             <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center justify-center w-full max-w-4xl">
                 
-                {/* Tasto Gioca - Area di tocco ottimizzata e feedback visivo migliorato */}
+                {/* Tasto Gioca */}
                 <button 
                     onClick={() => onNavigate(AppState.LEVEL_SELECT)}
                     className="group relative flex flex-col items-center touch-manipulation"
@@ -85,7 +95,7 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate }) => {
                 </div>
             </div>
 
-            {/* News - Nascosta su mobile molto piccolo per non affollare */}
+            {/* News */}
             <div className="mt-12 md:mt-24 max-w-lg text-center px-4 hidden sm:block">
                 <div className="text-[10px] text-gray-600 uppercase mb-3 tracking-[0.4em]">Aggiornamenti Live</div>
                 <div className="bg-white/5 border border-white/10 p-4 rounded-2xl backdrop-blur-sm">
