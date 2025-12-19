@@ -14,6 +14,7 @@ import FriendsLobby from './components/FriendsLobby';
 const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
     const [opponent, setOpponent] = useState<string | null>(null);
+    const [incomingInvite, setIncomingInvite] = useState<string | null>(null);
     
     const [stats, setStats] = useState<UserStats>({
         username: '',
@@ -28,6 +29,17 @@ const App: React.FC = () => {
     const isChristmasSeason = useMemo(() => {
         const now = new Date();
         return now.getMonth() === 11;
+    }, []);
+
+    // Controllo sfide nel link (URL)
+    useEffect(() => {
+        const params = new URLSearchParams(window.location.search);
+        const challenger = params.get('challenge');
+        if (challenger) {
+            setIncomingInvite(challenger.toUpperCase());
+            // Puliamo l'URL senza ricaricare
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
     }, []);
 
     useEffect(() => {
@@ -103,7 +115,7 @@ const App: React.FC = () => {
         }
 
         setStats(prev => ({ ...prev, gems: prev.gems + totalReward }));
-        setOpponent(null); // Reset avversario
+        setOpponent(null); 
         setView(AppState.LEVEL_SELECT);
     };
 
@@ -219,11 +231,49 @@ const App: React.FC = () => {
                 />
             )}
 
+            {/* Popup Invito Reale */}
+            {incomingInvite && (
+                <div className="fixed inset-0 z-[200] flex items-center justify-center bg-black/90 backdrop-blur-xl animate-in fade-in duration-500">
+                    <div className="bg-gray-900 border-2 border-blue-500 p-8 rounded-[40px] shadow-[0_0_100px_rgba(59,130,246,0.5)] max-w-sm w-full text-center">
+                        <div className="w-24 h-24 bg-blue-600 rounded-full flex items-center justify-center text-4xl mx-auto mb-6 shadow-2xl animate-bounce">
+                            <i className="fas fa-swords text-white"></i>
+                        </div>
+                        <h2 className="text-white font-black text-2xl uppercase italic tracking-tighter mb-2">Sfida in arrivo!</h2>
+                        <p className="text-gray-400 text-sm mb-8">
+                            <span className="text-blue-400 font-black">{incomingInvite}</span> ti ha inviato una sfida globale. Vuoi accettare?
+                        </p>
+                        <div className="flex flex-col gap-4">
+                            <button 
+                                onClick={() => {
+                                    setOpponent(incomingInvite);
+                                    setIncomingInvite(null);
+                                    if (view === AppState.LOGIN) {
+                                        alert("Fai prima il login per giocare!");
+                                    } else {
+                                        setView(AppState.LEVEL_SELECT);
+                                    }
+                                }}
+                                className="bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl transition-all transform active:scale-95 uppercase tracking-widest"
+                            >
+                                Accetta Sfida
+                            </button>
+                            <button 
+                                onClick={() => setIncomingInvite(null)}
+                                className="text-gray-500 font-bold hover:text-white transition-colors uppercase text-xs"
+                            >
+                                Rifiuta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
             {/* Banner Sfida Attiva */}
-            {opponent && view !== AppState.GAME && view !== AppState.LOGIN && (
+            {opponent && view !== AppState.GAME && view !== AppState.LOGIN && !incomingInvite && (
                 <div className="absolute bottom-6 left-1/2 -translate-x-1/2 bg-blue-600 px-6 py-2 rounded-full border border-white/20 shadow-2xl animate-bounce z-[100] flex items-center gap-3">
                     <i className="fas fa-swords text-white"></i>
                     <span className="text-white font-black text-xs uppercase tracking-widest">SFIDA CONTRO {opponent}</span>
+                    <button onClick={() => setOpponent(null)} className="ml-2 text-blue-200 hover:text-white"><i className="fas fa-times"></i></button>
                 </div>
             )}
             
