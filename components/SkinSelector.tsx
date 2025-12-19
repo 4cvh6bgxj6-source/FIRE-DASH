@@ -15,6 +15,11 @@ interface Props {
 }
 
 const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, gems, stats, isChristmasSeason, onUnlock, onSelect, onBack }) => {
+    const visibleSkins = skins.filter(s => {
+        if (s.id === 's-seba') return unlockedSkins.includes(s.id);
+        return true;
+    });
+
     return (
         <div className="flex flex-col items-center h-full w-full bg-black p-8 overflow-y-auto">
             <div className="w-full max-w-6xl flex justify-between items-center mb-12">
@@ -32,13 +37,12 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-6 w-full max-w-6xl">
-                {skins.map((skin) => {
+                {visibleSkins.map((skin) => {
                     const isUnlocked = unlockedSkins.includes(skin.id);
                     const isSelected = selectedSkinId === skin.id;
                     const discountedCost = isChristmasSeason ? Math.floor(skin.cost * 0.75) : skin.cost;
                     const hasRequiredTier = skin.requiredTier === 'free' || (skin.requiredTier === 'premium' && (stats.isPremium || stats.isVip)) || (skin.requiredTier === 'vip' && stats.isVip);
 
-                    // Logica per nascondere il nome della skin ERROR 666 se non sbloccata
                     const isSecret = skin.id === 's666' && !isUnlocked;
                     const displayName = isSecret ? 'SECRET...' : skin.name;
 
@@ -51,8 +55,8 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                         >
                             <div className="absolute top-2 right-2 flex flex-col gap-1 items-end z-10">
                                 {skin.isGlitched && (
-                                    <div className={`${skin.id === 's666' ? 'bg-red-950 text-red-500 border border-red-500' : 'bg-red-600 text-white'} text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse uppercase`}>
-                                        <i className="fas fa-biohazard mr-1"></i> {isSecret ? 'UNKNOWN' : 'ERROR'}
+                                    <div className={`${skin.id === 's666' || skin.id === 's-seba' ? 'bg-red-950 text-red-500 border border-red-500' : 'bg-red-600 text-white'} text-[8px] font-black px-1.5 py-0.5 rounded animate-pulse uppercase`}>
+                                        <i className="fas fa-biohazard mr-1"></i> {isSecret ? 'UNKNOWN' : (skin.id === 's-seba' ? 'SEBA_GHOST' : 'ERROR')}
                                     </div>
                                 )}
                             </div>
@@ -68,7 +72,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                                 <i className={`fas ${isSecret ? 'fa-question-circle animate-pulse' : skin.icon} text-white`}></i>
                             </div>
                             
-                            <h4 className={`text-white font-black text-xs uppercase text-center mb-3 h-8 flex items-center justify-center ${skin.id === 's666' ? 'text-red-600 font-mono tracking-tighter' : ''}`}>
+                            <h4 className={`text-white font-black text-xs uppercase text-center mb-3 h-8 flex items-center justify-center ${skin.id === 's666' || skin.id === 's-seba' ? 'text-red-600 font-mono tracking-tighter' : ''}`}>
                                 {displayName}
                             </h4>
                             
@@ -96,12 +100,6 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                                         <span>{discountedCost}</span>
                                     </div>
                                 </button>
-                            )}
-                            
-                            {!isUnlocked && skin.requiredTier && skin.requiredTier !== 'free' && (
-                                <div className="mt-2 text-[8px] font-bold text-gray-500 uppercase tracking-widest">
-                                    Richiede {skin.requiredTier}
-                                </div>
                             )}
                         </div>
                     );
