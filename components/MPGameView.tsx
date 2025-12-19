@@ -23,7 +23,7 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
     const p2 = useRef({ y: 150, dy: 0, rotation: 0, isGrounded: false, alive: true });
 
     useEffect(() => {
-        // Inizializzazione Mondo
+        // Inizializzazione Mondo (Sincronizzato per entrambi)
         const obs: any[] = [];
         const levelLength = 8000;
         world.current.levelLength = levelLength;
@@ -41,7 +41,7 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
             }
         };
 
-        const onKeyDown = (e: KeyboardEvent) => { if (e.code === 'Space') handleInput(true); };
+        const onKeyDown = (e: KeyboardEvent) => { if (e.code === 'Space' || e.code === 'ArrowUp') handleInput(true); };
         window.addEventListener('keydown', onKeyDown);
         
         let frame: number;
@@ -55,7 +55,7 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
 
             const groundY = 240;
 
-            // LOGICA PLAYER 1 (TE)
+            // --- PLAYER 1 (TU - SOPRA) ---
             if (p1.current.alive) {
                 p1.current.dy += GAME_GRAVITY;
                 p1.current.y += p1.current.dy;
@@ -69,7 +69,6 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
                     if (mySkin.id !== 's-man') p1.current.rotation += 0.2;
                 }
 
-                // Collisioni P1
                 world.current.obstacles.forEach(o => {
                     const ox = o.x - world.current.x;
                     if (ox > 120 && ox < 180 && p1.current.y > groundY - o.height - 10) {
@@ -78,14 +77,14 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
                 });
             }
 
-            // LOGICA PLAYER 2 (AVVERSARIO SIMULATO)
+            // --- PLAYER 2 (SFIDANTE - SOTTO) ---
             if (p2.current.alive) {
                 p2.current.dy += GAME_GRAVITY;
                 p2.current.y += p2.current.dy;
                 
-                // IA di salto basata sugli ostacoli vicini
+                // IA di salto simulata (per inviti offline)
                 const nextObstacle = world.current.obstacles.find(o => (o.x - world.current.x) > 180 && (o.x - world.current.x) < 350);
-                if (nextObstacle && p2.current.isGrounded && Math.random() > 0.8) {
+                if (nextObstacle && p2.current.isGrounded && Math.random() > 0.85) {
                     p2.current.dy = JUMP_FORCE;
                     p2.current.isGrounded = false;
                 }
@@ -100,20 +99,20 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
                     if (oppSkin.id !== 's-man') p2.current.rotation += 0.2;
                 }
 
-                // Collisioni P2 (leggermente più clemente per simulazione)
                 world.current.obstacles.forEach(o => {
                     const ox = o.x - world.current.x;
                     if (ox > 120 && ox < 180 && p2.current.y > groundY - o.height - 10) {
-                        if (Math.random() > 0.98) p2.current.alive = false;
+                        if (Math.random() > 0.99) p2.current.alive = false;
                     }
                 });
             }
 
-            // Condizioni Vittoria
+            // Gestione Vittoria
             if (!p1.current.alive && p2.current.alive) setWinner(opponentName);
             else if (!p2.current.alive && p1.current.alive) setWinner(username);
             else if (prog >= 100) setWinner(p1.current.alive ? username : opponentName);
 
+            // Rendering Distinto
             draw(canvasTopRef.current, p1.current, mySkin, username, true);
             draw(canvasBottomRef.current, p2.current, oppSkin, opponentName, false);
 
@@ -125,7 +124,7 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
             const ctx = canvas.getContext('2d');
             if (!ctx) return;
 
-            ctx.fillStyle = '#0f172a';
+            ctx.fillStyle = isMe ? '#0f172a' : '#1e1b4b';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
             const groundY = 240;
@@ -133,7 +132,6 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
             ctx.fillRect(0, groundY, canvas.width, 60);
             ctx.strokeStyle = level.color; ctx.lineWidth = 4; ctx.strokeRect(0, groundY, canvas.width, 2);
 
-            // Ostacoli
             world.current.obstacles.forEach(o => {
                 const ox = o.x - world.current.x;
                 if (ox < -100 || ox > canvas.width + 100) return;
@@ -144,19 +142,18 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
                 }
             });
 
-            // Player Rendering (Stickman o Icona)
             if (p.alive) {
                 ctx.save();
                 ctx.translate(150 + 20, p.y + 20);
                 
                 if (skin.id === 's-man') {
                     ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3; ctx.lineCap = 'round';
-                    ctx.beginPath(); ctx.arc(0, -15, 7, 0, Math.PI * 2); ctx.stroke(); // Testa
-                    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 10); ctx.stroke(); // Tronco
-                    ctx.beginPath(); ctx.moveTo(-12, -2); ctx.lineTo(12, -2); ctx.stroke(); // Braccia
+                    ctx.beginPath(); ctx.arc(0, -15, 7, 0, Math.PI * 2); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, -8); ctx.lineTo(0, 10); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(-12, -2); ctx.lineTo(12, -2); ctx.stroke();
                     const legOff = p.isGrounded ? 8 : 12;
-                    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(-legOff, 20); ctx.stroke(); // Gamba L
-                    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(legOff, 20); ctx.stroke(); // Gamba R
+                    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(-legOff, 20); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(legOff, 20); ctx.stroke();
                 } else {
                     ctx.rotate(p.rotation);
                     ctx.fillStyle = skin.color;
@@ -167,16 +164,20 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
                 }
                 ctx.restore();
             } else {
-                // Effetto esplosione se morto
-                ctx.fillStyle = 'white'; ctx.font = 'bold 20px Orbitron'; ctx.textAlign = 'center';
-                ctx.fillText('CRASH!', 170, p.y);
+                ctx.fillStyle = 'white'; ctx.font = 'bold 24px Orbitron'; ctx.textAlign = 'center';
+                ctx.fillText('BUM!', 170, p.y + 20);
             }
 
-            // UI Label
-            ctx.fillStyle = isMe ? '#60a5fa' : '#ef4444';
-            ctx.font = 'black 14px Orbitron';
+            // LABEL NOMI CORRETTI
+            ctx.fillStyle = isMe ? '#3b82f6' : '#ef4444';
+            ctx.font = 'black 16px Orbitron';
             ctx.textAlign = 'left';
-            ctx.fillText(`${isMe ? 'TU' : 'AVVERSARIO'}: ${name.toUpperCase()}`, 20, 35);
+            const label = isMe ? `TU: ${name.toUpperCase()}` : `AVVERSARIO: ${name.toUpperCase()}`;
+            ctx.fillText(label, 20, 40);
+            
+            // Bordino per separare gli schermi
+            ctx.strokeStyle = 'rgba(255,255,255,0.1)';
+            ctx.strokeRect(0,0,canvas.width, canvas.height);
         };
 
         update();
@@ -185,26 +186,24 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
 
     return (
         <div className="h-full w-full bg-black flex flex-col overflow-hidden">
-            {/* Split Screen Top */}
-            <div className="flex-1 relative border-b-4 border-yellow-500/50">
+            <div className="flex-1 relative border-b-2 border-white/20">
                 <canvas ref={canvasTopRef} width={window.innerWidth} height={window.innerHeight/2} className="w-full h-full" />
                 <div className="absolute top-4 right-4 text-white font-black text-2xl italic">{Math.floor(progress)}%</div>
             </div>
 
-            {/* Split Screen Bottom */}
             <div className="flex-1 relative">
                 <canvas ref={canvasBottomRef} width={window.innerWidth} height={window.innerHeight/2} className="w-full h-full" />
                 <div className="absolute top-4 right-4 text-white font-black text-2xl italic opacity-30">{Math.floor(progress)}%</div>
             </div>
 
             {winner && (
-                <div className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center p-8 backdrop-blur-xl animate-in fade-in duration-500">
-                    <div className="text-center bg-gray-900 p-12 rounded-[3rem] border-2 border-white/10 shadow-[0_0_50px_rgba(255,255,255,0.1)]">
-                        <h2 className="text-5xl font-black italic text-white uppercase mb-4 tracking-tighter">GARA FINITA</h2>
-                        <div className={`text-3xl font-black mb-10 uppercase italic ${winner === username ? 'text-emerald-400' : 'text-red-500'}`}>
-                            {winner === username ? 'HAI VINTO!' : 'HAI PERSO'}
+                <div className="fixed inset-0 z-[600] bg-black/95 flex items-center justify-center p-8 backdrop-blur-3xl animate-in fade-in zoom-in duration-500">
+                    <div className="text-center bg-gray-900 p-16 rounded-[4rem] border-4 border-white/10 shadow-[0_0_100px_rgba(255,255,255,0.1)] max-w-lg w-full">
+                        <h2 className="text-6xl font-black italic text-white uppercase mb-4 tracking-tighter">FINE GARA</h2>
+                        <div className={`text-4xl font-black mb-12 uppercase italic ${winner === username ? 'text-emerald-400 animate-pulse' : 'text-red-500'}`}>
+                            {winner === username ? 'HAI VINTO TU!' : 'VINCE LO SFIDANTE!'}
                         </div>
-                        <button onClick={onEnd} className="bg-white text-black font-black px-12 py-5 rounded-2xl uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-xl">Menu Principale</button>
+                        <button onClick={onEnd} className="w-full bg-white text-black font-black px-12 py-6 rounded-3xl uppercase tracking-[0.2em] transition-all transform active:scale-95 shadow-2xl text-xl">Torna al Menu</button>
                     </div>
                 </div>
             )}

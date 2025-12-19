@@ -6,10 +6,7 @@ export enum AppState {
     GAME = 'GAME',
     SHOP = 'SHOP',
     SKINS = 'SKINS',
-    GIFT_SHOP = 'GIFT_SHOP',
-    FRIENDS_LOBBY = 'FRIENDS_LOBBY',
-    MP_LOBBY = 'MP_LOBBY',
-    MP_GAME = 'MP_GAME'
+    GIFT_SHOP = 'GIFT_SHOP'
 }
 
 export interface Level {
@@ -39,12 +36,4 @@ export interface UserStats {
     isPremium: boolean;
     isVip: boolean;
     selectedSkinId: string;
-}
-
-export interface MPChallenge {
-    id: string;
-    from: string;
-    to: string;
-    status: 'pending' | 'accepted' | 'declined' | 'expired';
-    timestamp: number;
 }

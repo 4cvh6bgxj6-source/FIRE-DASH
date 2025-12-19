@@ -45,7 +45,7 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas }) => {
                 </button>
             </div>
 
-            {/* Logo Natalizio */}
+            {/* Logo */}
             <div className="mb-12 text-center z-10 scale-75 md:scale-100">
                 <h1 className="text-5xl md:text-7xl font-black italic text-white pixel-font mb-2 drop-shadow-[0_0_15px_rgba(255,255,255,0.3)]">
                     FIRE DASH
@@ -59,8 +59,8 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas }) => {
                 )}
             </div>
 
-            {/* Grid Pulsanti */}
-            <div className="flex flex-col md:flex-row gap-8 md:gap-12 items-center justify-center w-full max-w-4xl z-10">
+            {/* Grid Pulsanti Centrale */}
+            <div className="flex flex-col gap-8 items-center justify-center w-full max-w-xl z-10">
                 
                 <button 
                     onClick={() => onNavigate(AppState.LEVEL_SELECT)}
@@ -75,50 +75,34 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas }) => {
                     </div>
                 </button>
 
-                <div className="flex flex-col gap-4 md:gap-6 w-full md:w-auto px-4 md:px-0">
-                    <div className="flex flex-row md:flex-col gap-4">
-                        <button 
-                            onClick={() => onNavigate(AppState.FRIENDS_LOBBY)}
-                            className="flex-1 group relative flex items-center justify-center md:justify-start gap-4 bg-blue-700 hover:bg-blue-600 px-6 py-4 rounded-2xl shadow-xl transition-all border-b-4 border-blue-900"
-                        >
-                            <i className="fas fa-users text-xl text-white"></i>
-                            <span className="font-black text-white uppercase tracking-widest text-xs md:text-sm">Amici</span>
-                        </button>
+                <div className="grid grid-cols-3 gap-4 w-full">
+                    <button 
+                        onClick={() => onNavigate(AppState.GIFT_SHOP)}
+                        className="group relative flex flex-col items-center bg-red-600/90 hover:bg-red-500 p-4 rounded-2xl border border-white/10 shadow-xl transition-all active:scale-95"
+                    >
+                        <i className="fas fa-gift text-2xl text-white mb-2 animate-bounce"></i>
+                        <span className="font-black text-white uppercase tracking-widest text-[10px]">Regali</span>
+                    </button>
 
-                        <button 
-                            onClick={() => onNavigate(AppState.GIFT_SHOP)}
-                            className="flex-1 group relative flex items-center justify-center md:justify-start gap-4 bg-red-600 hover:bg-red-500 px-6 py-4 rounded-2xl shadow-xl transition-all border-b-4 border-red-900"
-                        >
-                            <i className="fas fa-gift text-xl text-white animate-bounce"></i>
-                            <span className="font-black text-white uppercase tracking-widest text-xs md:text-sm">Regali</span>
-                        </button>
-                    </div>
+                    <button 
+                        onClick={() => onNavigate(AppState.SKINS)}
+                        className="group relative flex flex-col items-center bg-gray-900/80 p-4 rounded-2xl border border-white/5 hover:border-emerald-500 transition-all active:scale-95 backdrop-blur-md"
+                    >
+                        <i className="fas fa-tshirt text-2xl text-emerald-500 mb-2"></i>
+                        <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Skins</span>
+                    </button>
 
-                    <div className="flex gap-4">
-                        <button 
-                            onClick={() => onNavigate(AppState.SKINS)}
-                            className="flex-1 group relative flex flex-col items-center bg-gray-900/80 p-4 rounded-2xl border border-white/5 hover:border-emerald-500 transition-all active:scale-95 backdrop-blur-md"
-                        >
-                            <div className="w-12 h-12 md:w-16 md:h-16 bg-emerald-600 rounded-xl flex items-center justify-center text-2xl shadow-lg transform transition-all group-hover:rotate-12">
-                                <i className="fas fa-tshirt text-white"></i>
-                            </div>
-                            <span className="mt-3 font-bold text-gray-400 uppercase tracking-widest text-[9px]">Skins</span>
-                        </button>
-
-                        <button 
-                            onClick={() => onNavigate(AppState.SHOP)}
-                            className="flex-1 group relative flex flex-col items-center bg-gray-900/80 p-4 rounded-2xl border border-white/5 hover:border-purple-500 transition-all active:scale-95 backdrop-blur-md"
-                        >
-                            <div className="w-12 h-12 md:w-16 md:h-16 bg-purple-600 rounded-xl flex items-center justify-center text-2xl shadow-lg transform transition-all group-hover:-rotate-12">
-                                <i className="fas fa-shopping-cart text-white"></i>
-                            </div>
-                            <span className="mt-3 font-bold text-gray-400 uppercase tracking-widest text-[9px]">Shop</span>
-                        </button>
-                    </div>
+                    <button 
+                        onClick={() => onNavigate(AppState.SHOP)}
+                        className="group relative flex flex-col items-center bg-gray-900/80 p-4 rounded-2xl border border-white/5 hover:border-purple-500 transition-all active:scale-95 backdrop-blur-md"
+                    >
+                        <i className="fas fa-shopping-cart text-2xl text-purple-500 mb-2"></i>
+                        <span className="font-bold text-gray-400 uppercase tracking-widest text-[10px]">Shop</span>
+                    </button>
                 </div>
             </div>
 
-            {/* Footer Natalizio */}
+            {/* Footer */}
             <div className="mt-12 md:mt-24 max-w-lg text-center px-4 z-10">
                 <p className="text-gray-400 text-xs italic font-bold uppercase tracking-widest bg-white/5 px-6 py-3 rounded-full border border-white/10">
                     <i className="fas fa-snowflake mr-2 text-blue-400"></i>

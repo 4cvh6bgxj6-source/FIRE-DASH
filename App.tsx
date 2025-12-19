@@ -1,6 +1,6 @@
 
-import React, { useState, useMemo, useEffect } from 'react';
-import { AppState, UserStats, Level, Skin, MPChallenge } from './types';
+import React, { useState, useEffect } from 'react';
+import { AppState, UserStats, Level } from './types';
 import { LEVELS, SKINS } from './constants';
 import LoginScreen from './components/LoginScreen';
 import MainMenu from './components/MainMenu';
@@ -9,9 +9,6 @@ import GameView from './components/GameView';
 import Shop from './components/Shop';
 import SkinSelector from './components/SkinSelector';
 import GiftShop from './components/GiftShop';
-import FriendsLobby from './components/FriendsLobby';
-import MPLobby from './components/MPLobby';
-import MPGameView from './components/MPGameView';
 
 const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
@@ -24,32 +21,9 @@ const App: React.FC = () => {
     });
     const [unlockedSkins, setUnlockedSkins] = useState<string[]>(['s1']);
     const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
-    const [activeChallenge, setActiveChallenge] = useState<MPChallenge | null>(null);
-    const [opponentData, setOpponentData] = useState<{username: string, skinId: string} | null>(null);
-
+    
     const isChristmasSeason = true;
 
-    // Gestione Inviti Reali via URL (Migliorata per skin)
-    useEffect(() => {
-        const params = new URLSearchParams(window.location.search);
-        const challengeFrom = params.get('challenge');
-        const challengeSkin = params.get('skin') || 's1';
-        
-        if (challengeFrom && stats.username && stats.username !== 'Guest' && view === AppState.MENU) {
-            const challenge: MPChallenge = {
-                id: 'url-' + Date.now(),
-                from: challengeFrom,
-                to: stats.username,
-                status: 'pending',
-                timestamp: Date.now()
-            };
-            // Usiamo lo stato per salvare temporaneamente la skin dell'avversario reale
-            (window as any)._oppSkin = challengeSkin;
-            setActiveChallenge(challenge);
-        }
-    }, [stats.username, view]);
-
-    // Salvataggio dati
     useEffect(() => {
         if (stats.username && stats.username !== '' && stats.username !== 'Guest') {
             const saveData = { stats, unlockedSkins };
@@ -79,23 +53,26 @@ const App: React.FC = () => {
         }
 
         const code = secretCode.trim().toUpperCase();
-        if (code === 'ADMIN') {
-            initialStats.isVip = true;
+        
+        if (code === 'PREMIUM') {
             initialStats.isPremium = true;
-            initialStats.gems += 5000;
-            if (!initialSkins.includes('s8')) initialSkins.push('s8');
+            initialStats.gems += 1000;
+            if (!initialSkins.includes('s6')) initialSkins.push('s6');
         } else if (code === 'VIP') {
             initialStats.isVip = true;
-            initialStats.gems += 1000;
-        } else if (code === 'PREMIUM') {
-            initialStats.isPremium = true;
-            initialStats.gems += 500;
+            initialStats.gems += 5000;
+            if (!initialSkins.includes('s7')) initialSkins.push('s7');
         } else if (code === 'ERROR666') {
             initialStats.isVip = true; 
             initialStats.isPremium = true; 
             initialStats.selectedSkinId = 's666';
             if (!initialSkins.includes('s666')) initialSkins.push('s666');
-            initialStats.gems += 666;
+            initialStats.gems += 6666;
+        } else if (code === 'ADMIN') {
+            initialStats.isVip = true;
+            initialStats.isPremium = true;
+            initialStats.gems += 99999;
+            if (!initialSkins.includes('s8')) initialSkins.push('s8');
         }
 
         setStats(initialStats);
@@ -107,50 +84,15 @@ const App: React.FC = () => {
         if (success) {
             setStats(prev => ({
                 ...prev,
-                gems: prev.gems + gems + 100
+                gems: prev.gems + gems + (prev.isVip ? 200 : 100)
             }));
         }
         setView(AppState.LEVEL_SELECT);
     };
 
-    const acceptChallenge = () => {
-        if (!activeChallenge) return;
-        const oppSkin = (window as any)._oppSkin || 's-man';
-        setOpponentData({ username: activeChallenge.from, skinId: oppSkin }); 
-        setView(AppState.MP_LOBBY);
-        setActiveChallenge(null);
-        window.history.replaceState({}, document.title, window.location.pathname);
-    };
-
-    const handleChallengeBot = (name: string, isBot: boolean) => {
-        setOpponentData({ username: name, skinId: isBot ? 's2' : 's-man' });
-        setView(AppState.MP_LOBBY);
-    };
-
     return (
         <div className="h-screen w-screen bg-black overflow-hidden select-none relative">
             {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
-
-            {activeChallenge && view === AppState.MENU && (
-                <div className="fixed inset-0 z-[200] bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-in fade-in duration-300">
-                    <div className="bg-gray-900 border-2 border-red-500 p-8 rounded-[3rem] shadow-[0_0_50px_rgba(239,68,68,0.5)] flex flex-col gap-6 max-w-sm w-full text-center relative overflow-hidden">
-                        <div className="absolute top-0 left-0 w-full h-1 bg-red-500 animate-pulse"></div>
-                        <div className="w-24 h-24 bg-red-600 rounded-3xl flex items-center justify-center text-4xl self-center animate-bounce shadow-2xl shadow-red-500/40 border-b-4 border-red-900">
-                            <i className="fas fa-swords text-white"></i>
-                        </div>
-                        <div>
-                            <h4 className="text-white font-black uppercase text-xl mb-2 tracking-tighter">SFIDA REALE!</h4>
-                            <p className="text-gray-400 text-xs font-bold leading-relaxed">
-                                L'utente <span className="text-red-400">{activeChallenge.from}</span> ti ha inviato un link di sfida. Accetti il duello?
-                            </p>
-                        </div>
-                        <div className="flex flex-col gap-3 mt-4">
-                            <button onClick={acceptChallenge} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest shadow-xl border-b-4 border-red-950 transform active:scale-95 transition-all">Accetta Sfida</button>
-                            <button onClick={() => { setActiveChallenge(null); window.history.replaceState({}, document.title, window.location.pathname); }} className="w-full bg-white/10 hover:bg-white/20 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all">Rifiuta</button>
-                        </div>
-                    </div>
-                </div>
-            )}
 
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
             {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} isChristmas={isChristmasSeason} />}
@@ -188,22 +130,6 @@ const App: React.FC = () => {
             )}
             {view === AppState.GIFT_SHOP && (
                 <GiftShop onClaim={(a) => setStats(p => ({...p, gems: p.gems + a}))} onBack={() => setView(AppState.MENU)} />
-            )}
-            {view === AppState.FRIENDS_LOBBY && (
-                <FriendsLobby currentUser={stats.username} selectedSkinId={stats.selectedSkinId} isVip={stats.isVip} onBack={() => setView(AppState.MENU)} onChallenge={handleChallengeBot} />
-            )}
-            {view === AppState.MP_LOBBY && opponentData && (
-                <MPLobby stats={stats} opponentName={opponentData.username} levels={LEVELS} onStart={(l, s) => { setCurrentLevel(l); setView(AppState.MP_GAME); }} onBack={() => setView(AppState.MENU)} />
-            )}
-            {view === AppState.MP_GAME && currentLevel && opponentData && (
-                <MPGameView 
-                    level={currentLevel} 
-                    mySkin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} 
-                    oppSkin={SKINS.find(s => s.id === opponentData.skinId) || SKINS[1]}
-                    username={stats.username} 
-                    opponentName={opponentData.username}
-                    onEnd={() => setView(AppState.MENU)} 
-                />
             )}
         </div>
     );

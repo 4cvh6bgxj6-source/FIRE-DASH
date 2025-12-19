@@ -23,7 +23,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [isGodMode, setIsGodMode] = useState(false);
     
-    const particles = useRef<Particle[]>([]);
     const inputHeld = useRef(false);
     const player = useRef({
         y: 300, dy: 0, width: 40, height: 40, rotation: 0, isGrounded: false,
@@ -39,7 +38,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     const isAdminGlitch = skin.id === 's8';
     const isOmino = skin.id === 's-man';
     
-    // L'Admin Panel appare SOLO se hai una di queste due skin selezionate
     const hasAdminAccess = isError666 || isAdminGlitch;
 
     const initLevel = () => {
@@ -53,8 +51,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         const spacing = 450 / level.speedMultiplier;
         for (let i = 1200; i < levelLength - 1000; i += spacing + (Math.random() * 250)) {
             const rand = Math.random();
-            if (rand < 0.4) obstacles.push({ x: i, width: 40, height: 40, type: 'spike' });
-            else if (rand < 0.7) obstacles.push({ x: i, width: 60, height: 60, type: 'block' });
+            if (rand < 0.45) obstacles.push({ x: i, width: 40, height: 40, type: 'spike' });
+            else if (rand < 0.75) obstacles.push({ x: i, width: 60, height: 60, type: 'block' });
             else obstacles.push({ x: i, width: 30, height: 30, type: 'gem' });
         }
         world.current.obstacles = obstacles;
@@ -68,7 +66,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     useEffect(() => {
         const canvas = canvasRef.current;
         if (!canvas) return;
-        const ctx = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d', { alpha: false });
         if (!ctx) return;
 
         let animationFrameId: number;
@@ -87,53 +85,74 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         
         window.addEventListener('keydown', onKey);
         window.addEventListener('keyup', onKeyUp);
-        canvas.ontouchstart = (e) => { e.preventDefault(); handleInput(true); };
-        canvas.ontouchend = (e) => { e.preventDefault(); handleInput(false); };
-
+        
         const drawPlayer = (pX: number, pY: number) => {
             ctx.save();
             ctx.translate(pX + 20, pY + 20);
             
             if (isOmino) {
-                // DISEGNO STICKMAN STILIZZATO
+                // --- OMINO BIANCO (STICKMAN) ---
+                // Disegno manuale per l'omino che corre
                 ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 4;
+                ctx.lineWidth = 3;
                 ctx.lineCap = 'round';
+                
+                const jumpProgress = player.current.isGrounded ? 0 : Math.min(1, Math.abs(player.current.dy / JUMP_FORCE));
+                
                 // Testa
-                ctx.beginPath(); ctx.arc(0, -15, 8, 0, Math.PI * 2); ctx.stroke();
-                // Tronco
-                ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, 10); ctx.stroke();
+                ctx.beginPath(); ctx.arc(0, -18, 7, 0, Math.PI * 2); ctx.stroke();
+                // Corpo
+                ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(0, 5); ctx.stroke();
                 // Braccia
-                const armAnim = player.current.isGrounded ? 0 : Math.sin(Date.now()/100) * 10;
-                ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(-15, - armAnim); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(15, - armAnim); ctx.stroke();
+                const armAngle = player.current.isGrounded ? 0 : (jumpProgress * Math.PI / 1.5);
+                ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(-12, -5 - (armAngle * 5)); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -5); ctx.lineTo(12, -5 - (armAngle * 5)); ctx.stroke();
                 // Gambe
-                const legOffset = player.current.isGrounded ? 8 : 12;
-                ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(-legOffset, 20); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(legOffset, 20); ctx.stroke();
+                const legSpread = player.current.isGrounded ? 6 : 10 + (jumpProgress * 5);
+                ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(-legSpread, 18); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, 5); ctx.lineTo(legSpread, 18); ctx.stroke();
             } else {
+                // --- TUTTE LE ALTRE SKIN (ICONE) ---
                 if (!skin.canFly) ctx.rotate(player.current.rotation);
                 
                 ctx.fillStyle = skin.color;
-                if (isAdminGlitch && Math.random() > 0.8) ctx.fillStyle = '#000000';
+                // Effetto glitch per Admin e 666
+                if (isAdminGlitch && Math.random() > 0.85) ctx.fillStyle = '#ffffff';
+                if (isError666 && Math.random() > 0.9) ctx.fillStyle = '#ff0000';
                 
-                ctx.shadowBlur = (isError666 || isGodMode) ? 25 : 10;
+                ctx.shadowBlur = (isError666 || isGodMode) ? 20 : 10;
                 ctx.shadowColor = skin.color;
 
-                const iconMap: any = { 
-                    'fa-square': '\uf0c8', 'fa-cube': '\uf1b2', 'fa-diamond': '\uf219', 
-                    'fa-crown': '\uf44b', 'fa-bolt': '\uf0e7', 'fa-terminal': '\uf120', 
-                    'fa-sun': '\uf185', 'fa-fire': '\uf06d', 'fa-user-secret': '\uf21b', 
-                    'fa-skull': '\uf54c' 
+                // Mappa Completa Icone FontAwesome 6 (Solid)
+                // Deve corrispondere a 'constants.ts'
+                const iconMap: Record<string, string> = { 
+                    'fa-square': '\uf0c8',      // s1 - Cubo
+                    'fa-cat': '\uf6be',         // s2 - Gatto
+                    'fa-dragon': '\uf6d5',      // s3 - Drago
+                    'fa-crown': '\uf521',       // s4 - Corona (King)
+                    'fa-running': '\uf70c',     // s-man (fallback icon)
+                    'fa-bolt': '\uf0e7',        // s6 - Fulmine
+                    'fa-robot': '\uf544',       // s9 - Robot
+                    'fa-sun': '\uf185',         // s7 - Sole
+                    'fa-spider': '\uf717',      // s10 - Ragno
+                    'fa-user-secret': '\uf21b', // s8 - ADMIN GLITCH (Hacker)
+                    'fa-skull': '\uf54c'        // s666 - Teschio
                 };
                 
-                ctx.font = '40px "Font Awesome 6 Free"';
+                // IMPORTANTE: '900' è il font-weight necessario per le icone Solid
+                ctx.font = '900 36px "Font Awesome 6 Free"';
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
-                ctx.fillText(iconMap[skin.icon] || '\uf0c8', 0, 0);
+                
+                const iconChar = iconMap[skin.icon] || '\uf0c8'; // Default quadrato se non trova icona
+                
+                // Disegna l'icona piena
+                ctx.fillText(iconChar, 0, 0);
+                
+                // Disegna il bordo bianco
                 ctx.strokeStyle = 'white';
                 ctx.lineWidth = 1.5;
-                ctx.strokeText(iconMap[skin.icon] || '\uf0c8', 0, 0);
+                ctx.strokeText(iconChar, 0, 0);
             }
             ctx.restore();
         };
@@ -141,9 +160,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         const render = () => {
             if (gameStatus !== 'playing') return;
 
-            if (skin.canFly && inputHeld.current) player.current.dy -= 1.0;
+            if (skin.canFly && inputHeld.current) player.current.dy -= 0.85;
             player.current.dy += GAME_GRAVITY;
-            if (skin.canFly) player.current.dy = Math.max(-8, Math.min(8, player.current.dy));
+            if (skin.canFly) player.current.dy = Math.max(-7, Math.min(7, player.current.dy));
             player.current.y += player.current.dy;
 
             const groundY = canvas.height - 100;
@@ -154,7 +173,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 player.current.rotation = Math.round(player.current.rotation / (Math.PI / 2)) * (Math.PI / 2);
             } else {
                 player.current.isGrounded = false;
-                if (!isOmino) player.current.rotation += 0.2 * level.speedMultiplier;
+                if (!isOmino) player.current.rotation += 0.18 * level.speedMultiplier;
             }
 
             world.current.x += BASE_SPEED * level.speedMultiplier;
@@ -163,38 +182,48 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             if (prog >= 100) setGameStatus('won');
 
             const px = 150;
-            world.current.obstacles.forEach((obs, i) => {
+            const obstacles = world.current.obstacles;
+            for (let i = obstacles.length - 1; i >= 0; i--) {
+                const obs = obstacles[i];
                 const ox = obs.x - world.current.x;
-                if (ox < px - 60 || ox > px + 60) return;
-                const hitMargin = 5;
+                if (ox < px - 60 || ox > px + 60) continue;
+                
+                const hitMargin = 6;
                 const collided = px + hitMargin < ox + obs.width - hitMargin && 
                                px + 40 - hitMargin > ox + hitMargin && 
                                player.current.y + hitMargin < groundY - obs.height + obs.height - hitMargin && 
                                player.current.y + 40 - hitMargin > groundY - obs.height + hitMargin;
                 
                 if (collided) {
-                    if (obs.type === 'gem') { setGemsCollected(g => g + 10); world.current.obstacles.splice(i, 1); }
-                    else if (!isGodMode) setGameStatus('lost');
+                    if (obs.type === 'gem') { 
+                        setGemsCollected(g => g + 10); 
+                        obstacles.splice(i, 1); 
+                    } else if (!isGodMode) {
+                        setGameStatus('lost');
+                    }
                 }
-            });
+            }
 
-            ctx.fillStyle = isError666 ? '#1a0000' : '#0f172a';
+            ctx.fillStyle = '#0a0a1a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            ctx.fillStyle = isError666 ? '#000000' : '#020617';
+            ctx.fillStyle = '#050510';
             ctx.fillRect(0, groundY, canvas.width, 100);
-            ctx.strokeStyle = level.color; ctx.lineWidth = 4; ctx.strokeRect(0, groundY, canvas.width, 2);
+            ctx.strokeStyle = level.color; ctx.lineWidth = 3; ctx.strokeRect(0, groundY, canvas.width, 2);
 
             world.current.obstacles.forEach(o => {
                 const ox = o.x - world.current.x;
+                if (ox < -100 || ox > canvas.width + 100) return;
+                
                 if (o.type === 'spike') {
-                    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+20, groundY-40); ctx.lineTo(ox+40, groundY); ctx.fill();
+                    ctx.fillStyle = '#ff4444'; ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+20, groundY-40); ctx.lineTo(ox+40, groundY); ctx.fill();
                     ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.stroke();
                 } else if (o.type === 'block') {
-                    ctx.fillStyle = '#475569'; ctx.fillRect(ox, groundY-o.height, o.width, o.height);
-                    ctx.strokeStyle = 'white'; ctx.strokeRect(ox, groundY-o.height, o.width, o.height);
+                    ctx.fillStyle = '#334466'; ctx.fillRect(ox, groundY-o.height, o.width, o.height);
+                    ctx.strokeStyle = '#ffffff55'; ctx.strokeRect(ox, groundY-o.height, o.width, o.height);
                 } else if (o.type === 'gem') {
-                    ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(ox+15, groundY-40, 8, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(ox+15, groundY-45, 10, 0, Math.PI*2); ctx.fill();
+                    ctx.strokeStyle = 'white'; ctx.stroke();
                 }
             });
 
@@ -231,7 +260,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             )}
             
             <div className="absolute top-6 left-6 text-white z-10">
-                <div className="text-[10px] uppercase font-bold opacity-50">Player</div>
+                <div className="text-[10px] uppercase font-bold opacity-50 tracking-widest">Giocatore</div>
                 <div className="text-xl font-black italic">{username}</div>
                 <div className="text-blue-400 font-bold"><i className="fas fa-gem"></i> {gemsCollected}</div>
             </div>
@@ -239,38 +268,67 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
             {gameStatus !== 'playing' && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500">
-                    <div className="text-center p-10 bg-gray-900 border-2 border-white/10 rounded-[3rem] shadow-2xl max-w-sm w-full mx-4">
-                        <h2 className={`text-4xl font-black italic mb-2 uppercase tracking-tighter ${gameStatus === 'won' ? 'text-yellow-400' : 'text-red-500'}`}>
-                            {gameStatus === 'won' ? 'CONGRATULAZIONI!' : 'HAI PERSO'}
-                        </h2>
+                    <div className="text-center p-10 bg-gray-900 border-2 border-white/10 rounded-[3rem] shadow-2xl max-w-sm w-full mx-4 relative overflow-hidden">
                         
+                        {/* SCHERMATA VITTORIA */}
                         {gameStatus === 'won' && (
-                            <div className="mb-8 animate-bounce">
-                                <div className="text-emerald-400 font-black text-xl mt-2">+100 GEMME BONUS</div>
-                            </div>
-                        )}
-                        
-                        <div className="flex flex-col gap-4 mt-8">
-                            {gameStatus === 'lost' && (
+                            <>
+                                <h2 className="text-4xl font-black italic mb-2 uppercase tracking-tighter text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">
+                                    CONGRATULAZIONI!
+                                </h2>
+                                
+                                <div className="my-8 flex flex-col items-center gap-2 animate-bounce">
+                                    <i className="fas fa-gem text-5xl text-blue-400 filter drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]"></i>
+                                    <span className="text-3xl font-black text-white italic">+100 GEMME</span>
+                                    {gemsCollected > 0 && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PIÙ {gemsCollected} RACCOLTE</span>}
+                                </div>
+                                
                                 <button 
-                                    onClick={initLevel} 
-                                    className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all transform active:scale-95 shadow-lg shadow-red-500/20 border-b-4 border-red-950"
+                                    onClick={() => onEnd(true, gemsCollected)} 
+                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all border-b-4 border-blue-900 shadow-xl"
                                 >
-                                    <i className="fas fa-redo mr-2"></i> Riprova
+                                    MENU
                                 </button>
-                            )}
-                            
-                            <button 
-                                onClick={() => onEnd(gameStatus === 'won', gemsCollected)} 
-                                className="w-full bg-white/10 hover:bg-white/20 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all border border-white/10"
-                            >
-                                <i className="fas fa-home mr-2"></i> Menu
-                            </button>
-                        </div>
+                            </>
+                        )}
+
+                        {/* SCHERMATA SCONFITTA */}
+                        {gameStatus === 'lost' && (
+                            <>
+                                <h2 className="text-5xl font-black italic mb-6 uppercase tracking-tighter text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,0.8)] shake-animation">
+                                    HAI PERSO!
+                                </h2>
+                                
+                                <div className="flex flex-col gap-4 mt-4">
+                                    <button 
+                                        onClick={initLevel} 
+                                        className="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all transform active:scale-95 border-b-4 border-green-900 flex items-center justify-center gap-2 shadow-lg"
+                                    >
+                                        <i className="fas fa-redo"></i> RIPROVA
+                                    </button>
+                                    
+                                    <button 
+                                        onClick={() => onEnd(false, 0)} 
+                                        className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-black py-4 rounded-2xl uppercase tracking-widest transition-all border border-white/10"
+                                    >
+                                        MENU
+                                    </button>
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             )}
-            <canvas ref={canvasRef} width={window.innerWidth} height={window.innerHeight} className="w-full h-full" />
+            <canvas 
+                ref={canvasRef} 
+                width={window.innerWidth} 
+                height={window.innerHeight} 
+                className="w-full h-full"
+                onMouseDown={(e) => { e.preventDefault(); if(gameStatus === 'playing') { inputHeld.current = true; if(!skin.canFly && player.current.isGrounded) { player.current.dy = JUMP_FORCE; player.current.isGrounded = false; } } }}
+                onMouseUp={(e) => { e.preventDefault(); inputHeld.current = false; }}
+                onTouchStart={(e) => { e.preventDefault(); if(gameStatus === 'playing') { inputHeld.current = true; if(!skin.canFly && player.current.isGrounded) { player.current.dy = JUMP_FORCE; player.current.isGrounded = false; } } }}
+                onTouchEnd={(e) => { e.preventDefault(); inputHeld.current = false; }}
+            />
         </div>
     );
 };

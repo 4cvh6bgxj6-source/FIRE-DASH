@@ -13,24 +13,27 @@ export const LEVELS: Level[] = [
 ];
 
 export const SKINS: Skin[] = [
-    { id: 's1', name: 'Basic Cube', color: '#3b82f6', cost: 0, unlocked: true, icon: 'fa-square', requiredTier: 'free' },
-    { id: 's2', name: 'Neon Green', color: '#10b981', cost: 50, unlocked: false, icon: 'fa-cube', requiredTier: 'free' },
-    { id: 's3', name: 'Ruby Blaze', color: '#ef4444', cost: 150, unlocked: false, icon: 'fa-diamond', requiredTier: 'free' },
-    { id: 's4', name: 'Golden God', color: '#f59e0b', cost: 500, unlocked: false, icon: 'fa-crown', requiredTier: 'free' },
-    { id: 's-man', name: 'Omino Salterino', color: '#ffffff', cost: 200, unlocked: false, icon: 'fa-walking', requiredTier: 'free' },
+    // Base Skins - Stile Geometry Dash
+    { id: 's1', name: 'Cubo Classico', color: '#3b82f6', cost: 0, unlocked: true, icon: 'fa-square', requiredTier: 'free' },
+    { id: 's2', name: 'KitT (Cat)', color: '#10b981', cost: 100, unlocked: false, icon: 'fa-cat', requiredTier: 'free' },
+    { id: 's3', name: 'Nave Drago', color: '#ef4444', cost: 250, unlocked: false, icon: 'fa-dragon', requiredTier: 'free' },
+    { id: 's4', name: 'King Rank', color: '#f59e0b', cost: 600, unlocked: false, icon: 'fa-crown', requiredTier: 'free' },
     
-    // Premium
-    { id: 's6', name: 'Neon Spark', color: '#ff00ff', cost: 0, unlocked: false, icon: 'fa-bolt', requiredTier: 'premium' },
-    { id: 's9', name: 'Matrix Runner', color: '#003b00', cost: 300, unlocked: false, icon: 'fa-terminal', requiredTier: 'premium' },
+    // Omino Bianco - Stickman Speciale
+    { id: 's-man', name: 'Omino Bianco', color: '#ffffff', cost: 300, unlocked: false, icon: 'fa-running', requiredTier: 'free' },
     
-    // VIP
-    { id: 's7', name: 'Gold Void', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
-    { id: 's10', name: 'Fire Lord', color: '#ff4500', cost: 450, unlocked: false, icon: 'fa-fire', requiredTier: 'vip' },
+    // Premium Skins
+    { id: 's6', name: 'Wave (Fulmine)', color: '#00ffff', cost: 0, unlocked: false, icon: 'fa-bolt', requiredTier: 'premium' },
+    { id: 's9', name: 'Robo-X', color: '#888888', cost: 400, unlocked: false, icon: 'fa-robot', requiredTier: 'premium' },
     
-    // ADMIN GLITCH: Richiede VIP e 999 Gemme
+    // VIP Skins
+    { id: 's7', name: 'Ball (Sole)', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
+    { id: 's10', name: 'Spider Dash', color: '#ff4500', cost: 550, unlocked: false, icon: 'fa-spider', requiredTier: 'vip' },
+    
+    // Secrets
     { 
         id: 's8', 
-        name: 'ADMIN GLITCH', 
+        name: 'Hacker Glitch', 
         color: '#00ff41', 
         cost: 999, 
         unlocked: false, 
@@ -38,11 +41,9 @@ export const SKINS: Skin[] = [
         requiredTier: 'vip', 
         isGlitched: true 
     },
-
-    // ERROR 666: Skin Segreta (Codice)
     { 
         id: 's666', 
-        name: 'ERROR 666', 
+        name: 'Demon Skull', 
         color: '#ff0000', 
         cost: 0, 
         unlocked: false, 
@@ -53,6 +54,6 @@ export const SKINS: Skin[] = [
     }
 ];
 
-export const GAME_GRAVITY = 0.6;
-export const JUMP_FORCE = -12;
-export const BASE_SPEED = 5;
+export const GAME_GRAVITY = 0.65;
+export const JUMP_FORCE = -13;
+export const BASE_SPEED = 5.2;
