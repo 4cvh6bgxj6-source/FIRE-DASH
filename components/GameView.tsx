@@ -39,7 +39,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
     const isAdminGlitch = skin.id === 's8';
     const isOmino = skin.id === 's-man';
     
-    // L'Admin Panel appare SOLO se hai una di queste due skin
+    // L'Admin Panel appare SOLO se hai una di queste due skin selezionate
     const hasAdminAccess = isError666 || isAdminGlitch;
 
     const initLevel = () => {
@@ -95,7 +95,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             ctx.translate(pX + 20, pY + 20);
             
             if (isOmino) {
-                // DISEGNO STICKMAN
+                // DISEGNO STICKMAN STILIZZATO
                 ctx.strokeStyle = '#ffffff';
                 ctx.lineWidth = 4;
                 ctx.lineCap = 'round';
@@ -104,10 +104,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 // Tronco
                 ctx.beginPath(); ctx.moveTo(0, -7); ctx.lineTo(0, 10); ctx.stroke();
                 // Braccia
-                const armAngle = player.current.isGrounded ? 0 : -0.5;
-                ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(-15, -2 + (armAngle * 10)); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(15, -2 + (armAngle * 10)); ctx.stroke();
-                // Gambe (animate se salta)
+                const armAnim = player.current.isGrounded ? 0 : Math.sin(Date.now()/100) * 10;
+                ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(-15, - armAnim); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -2); ctx.lineTo(15, - armAnim); ctx.stroke();
+                // Gambe
                 const legOffset = player.current.isGrounded ? 8 : 12;
                 ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(-legOffset, 20); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(0, 10); ctx.lineTo(legOffset, 20); ctx.stroke();
@@ -131,7 +131,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 ctx.textAlign = 'center';
                 ctx.textBaseline = 'middle';
                 ctx.fillText(iconMap[skin.icon] || '\uf0c8', 0, 0);
-                ctx.strokeStyle = 'rgba(255,255,255,0.8)';
+                ctx.strokeStyle = 'white';
                 ctx.lineWidth = 1.5;
                 ctx.strokeText(iconMap[skin.icon] || '\uf0c8', 0, 0);
             }
@@ -141,7 +141,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
         const render = () => {
             if (gameStatus !== 'playing') return;
 
-            // Logica Movimento
             if (skin.canFly && inputHeld.current) player.current.dy -= 1.0;
             player.current.dy += GAME_GRAVITY;
             if (skin.canFly) player.current.dy = Math.max(-8, Math.min(8, player.current.dy));
@@ -163,7 +162,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             setProgress(prog);
             if (prog >= 100) setGameStatus('won');
 
-            // Collisioni
             const px = 150;
             world.current.obstacles.forEach((obs, i) => {
                 const ox = obs.x - world.current.x;
@@ -180,36 +178,23 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                 }
             });
 
-            // Disegno
             ctx.fillStyle = isError666 ? '#1a0000' : '#0f172a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Griglia di sfondo (opzionale per estetica Dash)
-            ctx.strokeStyle = 'rgba(255,255,255,0.05)';
-            ctx.lineWidth = 1;
-            for(let x = -(world.current.x % 100); x < canvas.width; x += 100) {
-                ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, canvas.height); ctx.stroke();
-            }
-
-            // Terreno
             ctx.fillStyle = isError666 ? '#000000' : '#020617';
             ctx.fillRect(0, groundY, canvas.width, 100);
             ctx.strokeStyle = level.color; ctx.lineWidth = 4; ctx.strokeRect(0, groundY, canvas.width, 2);
 
-            // Ostacoli
             world.current.obstacles.forEach(o => {
                 const ox = o.x - world.current.x;
                 if (o.type === 'spike') {
-                    ctx.fillStyle = '#ef4444'; 
-                    ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+20, groundY-40); ctx.lineTo(ox+40, groundY); ctx.fill();
+                    ctx.fillStyle = '#ef4444'; ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+20, groundY-40); ctx.lineTo(ox+40, groundY); ctx.fill();
                     ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.stroke();
                 } else if (o.type === 'block') {
                     ctx.fillStyle = '#475569'; ctx.fillRect(ox, groundY-o.height, o.width, o.height);
                     ctx.strokeStyle = 'white'; ctx.strokeRect(ox, groundY-o.height, o.width, o.height);
                 } else if (o.type === 'gem') {
-                    ctx.fillStyle = '#3b82f6'; 
-                    ctx.beginPath(); ctx.arc(ox+15, groundY-40, 8, 0, Math.PI*2); ctx.fill();
-                    ctx.shadowBlur = 10; ctx.shadowColor = '#3b82f6'; ctx.stroke(); ctx.shadowBlur = 0;
+                    ctx.fillStyle = '#3b82f6'; ctx.beginPath(); ctx.arc(ox+15, groundY-40, 8, 0, Math.PI*2); ctx.fill();
                 }
             });
 
@@ -227,11 +212,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
 
     return (
         <div className="h-full w-full relative bg-black overflow-hidden">
-            {/* Pulsante Admin Panel - Visibile solo per ERROR666 o ADMIN GLITCH */}
             {hasAdminAccess && (
                 <button 
                     onClick={() => setShowAdminPanel(true)} 
-                    className={`fixed top-20 left-6 z-50 bg-black/80 border w-12 h-12 rounded-full shadow-lg transition-all active:scale-90 ${isAdminGlitch ? 'border-green-500 text-green-500' : 'border-red-500 text-red-500'}`}
+                    className={`fixed top-20 left-6 z-50 bg-black/80 border w-12 h-12 rounded-full shadow-lg transition-all active:scale-90 ${isAdminGlitch ? 'border-green-500 text-green-500 shadow-green-500/20' : 'border-red-500 text-red-500 shadow-red-500/20'}`}
                 >
                     <i className="fas fa-terminal"></i>
                 </button>
@@ -248,14 +232,13 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             
             <div className="absolute top-6 left-6 text-white z-10">
                 <div className="text-[10px] uppercase font-bold opacity-50">Player</div>
-                <div className={`text-xl font-black italic ${isError666 ? 'text-red-600' : 'text-white'}`}>{username}</div>
+                <div className="text-xl font-black italic">{username}</div>
                 <div className="text-blue-400 font-bold"><i className="fas fa-gem"></i> {gemsCollected}</div>
             </div>
             <div className="absolute top-6 right-6 text-white text-4xl font-black italic z-10">{Math.floor(progress)}%</div>
 
-            {/* Overlay Fine Partita */}
             {gameStatus !== 'playing' && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 backdrop-blur-md animate-in fade-in duration-500">
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500">
                     <div className="text-center p-10 bg-gray-900 border-2 border-white/10 rounded-[3rem] shadow-2xl max-w-sm w-full mx-4">
                         <h2 className={`text-4xl font-black italic mb-2 uppercase tracking-tighter ${gameStatus === 'won' ? 'text-yellow-400' : 'text-red-500'}`}>
                             {gameStatus === 'won' ? 'CONGRATULAZIONI!' : 'HAI PERSO'}
@@ -263,7 +246,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                         
                         {gameStatus === 'won' && (
                             <div className="mb-8 animate-bounce">
-                                <div className="text-white font-bold text-sm">Hai completato il livello!</div>
                                 <div className="text-emerald-400 font-black text-xl mt-2">+100 GEMME BONUS</div>
                             </div>
                         )}
@@ -272,7 +254,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                             {gameStatus === 'lost' && (
                                 <button 
                                     onClick={initLevel} 
-                                    className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all transform active:scale-95 shadow-lg shadow-red-500/20"
+                                    className="w-full bg-gradient-to-r from-red-600 to-orange-600 hover:from-red-500 hover:to-orange-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all transform active:scale-95 shadow-lg shadow-red-500/20 border-b-4 border-red-950"
                                 >
                                     <i className="fas fa-redo mr-2"></i> Riprova
                                 </button>
