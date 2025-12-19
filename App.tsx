@@ -24,19 +24,24 @@ const App: React.FC = () => {
     
     const isChristmasSeason = true;
 
+    // Sistema di salvataggio automatico per OGNI username
     useEffect(() => {
-        if (stats.username && stats.username !== '' && stats.username !== 'Guest') {
+        if (stats.username) {
+            const storageKey = `fd_user_data_${stats.username.trim().toLowerCase()}`;
             const saveData = { stats, unlockedSkins };
-            localStorage.setItem(`fd_user_data_${stats.username.toLowerCase()}`, JSON.stringify(saveData));
+            localStorage.setItem(storageKey, JSON.stringify(saveData));
         }
     }, [stats, unlockedSkins]);
 
-    const handleLogin = (username: string, secretCode: string) => {
-        const lowerName = username.trim().toLowerCase();
-        const savedRaw = localStorage.getItem(`fd_user_data_${lowerName}`);
+    const handleLogin = (usernameInput: string, secretCode: string) => {
+        // Normalizza input: se vuoto diventa Guest, altrimenti usa l'input trim
+        const effectiveUsername = usernameInput.trim() || 'Guest';
+        const storageKey = `fd_user_data_${effectiveUsername.toLowerCase()}`;
+        
+        const savedRaw = localStorage.getItem(storageKey);
         
         let initialStats: UserStats = {
-            username: username || 'Guest',
+            username: effectiveUsername,
             gems: 0,
             isPremium: false,
             isVip: false,
@@ -47,13 +52,21 @@ const App: React.FC = () => {
         if (savedRaw) {
             try {
                 const parsed = JSON.parse(savedRaw);
-                initialStats = { ...parsed.stats, username: username };
-                initialSkins = parsed.unlockedSkins;
-            } catch (e) {}
+                // Carica le statistiche salvate sovrascrivendo i default
+                initialStats = { 
+                    ...initialStats, 
+                    ...parsed.stats,
+                    username: effectiveUsername // Assicura che il nome visualizzato sia quello attuale
+                };
+                initialSkins = parsed.unlockedSkins || ['s1'];
+            } catch (e) {
+                console.error("Errore caricamento dati:", e);
+            }
         }
 
         const code = secretCode.trim().toUpperCase();
         
+        // Codici Segreti (si applicano sopra i dati caricati)
         if (code === 'PREMIUM') {
             initialStats.isPremium = true;
             initialStats.gems += 1000;
