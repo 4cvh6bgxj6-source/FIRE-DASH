@@ -9,6 +9,7 @@ import GameView from './components/GameView';
 import Shop from './components/Shop';
 import SkinSelector from './components/SkinSelector';
 import GiftShop from './components/GiftShop';
+import ChristmasEvent from './components/ChristmasEvent';
 
 const App: React.FC = () => {
     const [view, setView] = useState<AppState>(AppState.LOGIN);
@@ -17,7 +18,10 @@ const App: React.FC = () => {
         gems: 0,
         isPremium: false,
         isVip: false,
-        selectedSkinId: 's1'
+        selectedSkinId: 's1',
+        hasChristmasName: false,
+        nameColorType: 'default',
+        customNameHex: '#ffffff'
     });
     const [unlockedSkins, setUnlockedSkins] = useState<string[]>(['s1']);
     const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
@@ -45,7 +49,10 @@ const App: React.FC = () => {
             gems: 0,
             isPremium: false,
             isVip: false,
-            selectedSkinId: 's1'
+            selectedSkinId: 's1',
+            hasChristmasName: false,
+            nameColorType: 'default',
+            customNameHex: '#ffffff'
         };
         let initialSkins: string[] = ['s1'];
 
@@ -88,6 +95,11 @@ const App: React.FC = () => {
             if (!initialSkins.includes('s8')) initialSkins.push('s8');
         }
 
+        // Logic check: Se aveva "christmas" ma non ha il bundle (es. reset), torna default
+        if (initialStats.nameColorType === 'christmas' && !initialStats.hasChristmasName) {
+            initialStats.nameColorType = 'default';
+        }
+
         setStats(initialStats);
         setUnlockedSkins(initialSkins);
         setView(AppState.MENU);
@@ -108,7 +120,14 @@ const App: React.FC = () => {
             {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
 
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
-            {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} isChristmas={isChristmasSeason} />}
+            {view === AppState.MENU && (
+                <MainMenu 
+                    stats={stats} 
+                    onNavigate={setView} 
+                    isChristmas={isChristmasSeason} 
+                    onUpdateStats={setStats} 
+                />
+            )}
             {view === AppState.LEVEL_SELECT && (
                 <LevelSelect levels={LEVELS} onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} onBack={() => setView(AppState.MENU)} />
             )}
@@ -143,6 +162,29 @@ const App: React.FC = () => {
             )}
             {view === AppState.GIFT_SHOP && (
                 <GiftShop onClaim={(a) => setStats(p => ({...p, gems: p.gems + a}))} onBack={() => setView(AppState.MENU)} />
+            )}
+            {view === AppState.CHRISTMAS_EVENT && (
+                <ChristmasEvent 
+                    skins={SKINS}
+                    unlockedSkins={unlockedSkins}
+                    gems={stats.gems}
+                    onUnlock={(s, c) => { 
+                        setStats(p => ({...p, gems: p.gems - c})); 
+                        setUnlockedSkins(p => [...p, s.id]); 
+                    }}
+                    onUnlockBundle={(bundleSkins, cost) => {
+                        const newIds = bundleSkins.map(s => s.id).filter(id => !unlockedSkins.includes(id));
+                        // SBLOCCA: Skin, Nome Natalizio e imposta subito il tipo a 'christmas'
+                        setStats(p => ({
+                            ...p, 
+                            gems: p.gems - cost, 
+                            hasChristmasName: true,
+                            nameColorType: 'christmas' 
+                        }));
+                        setUnlockedSkins(p => [...p, ...newIds]);
+                    }}
+                    onBack={() => setView(AppState.MENU)}
+                />
             )}
         </div>
     );

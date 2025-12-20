@@ -43,6 +43,20 @@
             font-weight: 900;
         }
 
+        /* NUOVO STILE NOME NATALIZIO */
+        .christmas-text {
+            background: linear-gradient(
+                to right,
+                #ef4444, #ffffff, #22c55e, #ffd700, #ef4444
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: rainbow-flow 4s linear infinite;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
+        }
+
         @keyframes rainbow-flow {
             to { background-position: 200% center; }
         }

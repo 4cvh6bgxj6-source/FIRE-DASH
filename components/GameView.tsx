@@ -149,7 +149,12 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
                     'fa-sun': '\uf185',
                     'fa-spider': '\uf717',
                     'fa-user-secret': '\uf21b',
-                    'fa-skull': '\uf54c'
+                    'fa-skull': '\uf54c',
+                    'fa-snowman': '\uf7d0',
+                    'fa-sleigh': '\uf7cc',
+                    'fa-tree': '\uf1bb',
+                    'fa-gift': '\uf06b',
+                    'fa-candy-cane': '\uf786'
                 };
                 
                 ctx.font = '900 36px "Font Awesome 6 Free"';
@@ -365,56 +370,67 @@ const GameView: React.FC<Props> = ({ level, skin, username, onEnd }) => {
             <div className="absolute top-6 right-6 text-white text-4xl font-black italic z-10">{Math.floor(progress)}%</div>
 
             {gameStatus !== 'playing' && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500">
-                    <div className="text-center p-10 bg-gray-900 border-2 border-white/10 rounded-[3rem] shadow-2xl max-w-sm w-full mx-4 relative overflow-hidden">
-                        
-                        {/* SCHERMATA VITTORIA */}
-                        {gameStatus === 'won' && (
-                            <>
-                                <h2 className="text-4xl font-black italic mb-2 uppercase tracking-tighter text-yellow-400 drop-shadow-[0_0_15px_rgba(250,204,21,0.5)]">
-                                    CONGRATULAZIONI!
-                                </h2>
+                <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 backdrop-blur-md animate-in fade-in duration-500 p-4">
+                    
+                    {/* MODALE VITTORIA RIDISEGNATA */}
+                    {gameStatus === 'won' && (
+                        <div className="relative z-10 w-[90%] max-w-md bg-gray-900 border-2 border-white/10 rounded-3xl shadow-2xl p-6 flex flex-col items-center animate-in zoom-in duration-300 overflow-hidden">
+                            {/* Gradiente Sfondo */}
+                            <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-yellow-500/20 to-transparent pointer-events-none"></div>
+
+                            <h2 className="relative z-10 text-2xl md:text-4xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-6 tracking-tighter drop-shadow-sm text-center break-words w-full">
+                                CONGRATULAZIONI!
+                            </h2>
+                            
+                            <div className="flex flex-col items-center justify-center gap-4 mb-6 relative z-10">
+                                <i className="fas fa-gem text-5xl md:text-6xl text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.6)] animate-[bounce_2s_infinite]"></i>
                                 
-                                <div className="my-8 flex flex-col items-center gap-2 animate-bounce">
-                                    <i className="fas fa-gem text-5xl text-blue-400 filter drop-shadow-[0_0_20px_rgba(59,130,246,0.6)]"></i>
-                                    <span className="text-3xl font-black text-white italic">+100 GEMME</span>
-                                    {gemsCollected > 0 && <span className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">PIÙ {gemsCollected} RACCOLTE</span>}
+                                <div className="text-center">
+                                    <div className="text-4xl md:text-5xl font-black text-white italic tracking-wide">+100</div>
+                                    <div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Gemme Base</div>
                                 </div>
+
+                                {gemsCollected > 0 && (
+                                    <div className="bg-white/10 border border-white/10 px-4 py-1.5 rounded-full flex items-center gap-2 shadow-inner">
+                                        <i className="fas fa-plus text-green-400 text-xs"></i>
+                                        <span className="text-xs font-bold text-gray-200 uppercase tracking-wide">{gemsCollected} Bonus</span>
+                                    </div>
+                                )}
+                            </div>
+                            
+                            <button 
+                                onClick={() => onEnd(true, gemsCollected)} 
+                                className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black py-4 rounded-xl uppercase tracking-[0.2em] transition-all transform active:scale-95 border-b-4 border-blue-900 shadow-lg relative z-10 text-sm md:text-base"
+                            >
+                                CONTINUA
+                            </button>
+                        </div>
+                    )}
+
+                    {/* MODALE SCONFITTA */}
+                    {gameStatus === 'lost' && (
+                        <div className="relative z-10 w-[90%] max-w-md bg-gray-900 border-2 border-white/10 rounded-3xl shadow-2xl p-6 md:p-8 flex flex-col items-center text-center animate-in zoom-in duration-300">
+                            <h2 className="text-4xl md:text-5xl font-black italic mb-6 uppercase tracking-tighter text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,0.8)] shake-animation break-words w-full">
+                                {isError666 ? 'ERROR 666' : 'HAI PERSO!'}
+                            </h2>
+                            
+                            <div className="flex flex-col gap-3 w-full mt-2">
+                                <button 
+                                    onClick={initLevel} 
+                                    className="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-xl uppercase tracking-widest transition-all transform active:scale-95 border-b-4 border-green-900 flex items-center justify-center gap-2 shadow-lg text-sm md:text-base"
+                                >
+                                    <i className="fas fa-redo"></i> RIPROVA
+                                </button>
                                 
                                 <button 
-                                    onClick={() => onEnd(true, gemsCollected)} 
-                                    className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all border-b-4 border-blue-900 shadow-xl"
+                                    onClick={() => onEnd(false, 0)} 
+                                    className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-black py-4 rounded-xl uppercase tracking-widest transition-all border border-white/10 text-sm md:text-base"
                                 >
                                     MENU
                                 </button>
-                            </>
-                        )}
-
-                        {/* SCHERMATA SCONFITTA */}
-                        {gameStatus === 'lost' && (
-                            <>
-                                <h2 className="text-5xl font-black italic mb-6 uppercase tracking-tighter text-red-600 drop-shadow-[0_0_25px_rgba(220,38,38,0.8)] shake-animation">
-                                    {isError666 ? 'ERROR 666... FATAL' : 'HAI PERSO!'}
-                                </h2>
-                                
-                                <div className="flex flex-col gap-4 mt-4">
-                                    <button 
-                                        onClick={initLevel} 
-                                        className="w-full bg-green-600 hover:bg-green-500 text-white font-black py-4 rounded-2xl uppercase tracking-widest transition-all transform active:scale-95 border-b-4 border-green-900 flex items-center justify-center gap-2 shadow-lg"
-                                    >
-                                        <i className="fas fa-redo"></i> RIPROVA
-                                    </button>
-                                    
-                                    <button 
-                                        onClick={() => onEnd(false, 0)} 
-                                        className="w-full bg-gray-800 hover:bg-gray-700 text-gray-300 font-black py-4 rounded-2xl uppercase tracking-widest transition-all border border-white/10"
-                                    >
-                                        MENU
-                                    </button>
-                                </div>
-                            </>
-                        )}
-                    </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             )}
             <canvas 

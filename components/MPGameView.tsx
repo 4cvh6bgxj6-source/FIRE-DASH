@@ -157,7 +157,18 @@ const MPGameView: React.FC<Props> = ({ level, mySkin, oppSkin, username, opponen
                 } else {
                     ctx.rotate(p.rotation);
                     ctx.fillStyle = skin.color;
-                    const iconMap: any = { 'fa-square': '\uf0c8', 'fa-cube': '\uf1b2', 'fa-diamond': '\uf219', 'fa-crown': '\uf44b', 'fa-bolt': '\uf0e7', 'fa-terminal': '\uf120', 'fa-sun': '\uf185', 'fa-fire': '\uf06d', 'fa-user-secret': '\uf21b', 'fa-skull': '\uf54c' };
+                    const iconMap: any = { 
+                        'fa-square': '\uf0c8', 
+                        'fa-cube': '\uf1b2', 
+                        'fa-diamond': '\uf219', 
+                        'fa-crown': '\uf44b', 
+                        'fa-bolt': '\uf0e7', 
+                        'fa-terminal': '\uf120', 
+                        'fa-sun': '\uf185', 
+                        'fa-fire': '\uf06d', 
+                        'fa-user-secret': '\uf21b', 
+                        'fa-skull': '\uf54c'
+                    };
                     ctx.font = '36px "Font Awesome 6 Free"'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                     ctx.fillText(iconMap[skin.icon] || '\uf0c8', 0, 0);
                     ctx.strokeStyle = 'white'; ctx.lineWidth = 1; ctx.strokeText(iconMap[skin.icon] || '\uf0c8', 0, 0);

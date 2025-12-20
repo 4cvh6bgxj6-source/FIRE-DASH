@@ -13,13 +13,13 @@ export const LEVELS: Level[] = [
 ];
 
 export const SKINS: Skin[] = [
-    // Base Skins - Stile Geometry Dash
+    // Base Skins
     { id: 's1', name: 'Cubo Classico', color: '#3b82f6', cost: 0, unlocked: true, icon: 'fa-square', requiredTier: 'free' },
     { id: 's2', name: 'KitT (Cat)', color: '#10b981', cost: 100, unlocked: false, icon: 'fa-cat', requiredTier: 'free' },
     { id: 's3', name: 'Nave Drago', color: '#ef4444', cost: 250, unlocked: false, icon: 'fa-dragon', requiredTier: 'free' },
     { id: 's4', name: 'King Rank', color: '#f59e0b', cost: 600, unlocked: false, icon: 'fa-crown', requiredTier: 'free' },
     
-    // Omino Bianco - Stickman Speciale
+    // Omino Bianco
     { id: 's-man', name: 'Omino Bianco', color: '#ffffff', cost: 300, unlocked: false, icon: 'fa-running', requiredTier: 'free' },
     
     // Premium Skins
@@ -30,6 +30,23 @@ export const SKINS: Skin[] = [
     { id: 's7', name: 'Ball (Sole)', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
     { id: 's10', name: 'Spider Dash', color: '#ff4500', cost: 550, unlocked: false, icon: 'fa-spider', requiredTier: 'vip' },
     
+    // EVENTO NATALE (Costi alti singolarmente per incentivare il bundle)
+    { id: 'xmas-1', name: 'Frosty Snowman', color: '#e0f2fe', cost: 4000, unlocked: false, icon: 'fa-snowman', requiredTier: 'free', isEvent: true },
+    { 
+        id: 'xmas-2', 
+        name: 'Rudolph', 
+        color: '#78350f', 
+        cost: 4000, 
+        unlocked: false, 
+        icon: 'fa-sleigh', 
+        requiredTier: 'free', 
+        isEvent: true,
+        canFly: true // RUDOLPH ORA PUÒ VOLARE!
+    },
+    { id: 'xmas-3', name: 'Xmas Tree', color: '#166534', cost: 4000, unlocked: false, icon: 'fa-tree', requiredTier: 'free', isEvent: true },
+    { id: 'xmas-4', name: 'Surprise Gift', color: '#dc2626', cost: 4000, unlocked: false, icon: 'fa-gift', requiredTier: 'free', isEvent: true },
+    { id: 'xmas-5', name: 'Candy Cane', color: '#f43f5e', cost: 4000, unlocked: false, icon: 'fa-candy-cane', requiredTier: 'free', isEvent: true },
+
     // Secrets
     { 
         id: 's8', 

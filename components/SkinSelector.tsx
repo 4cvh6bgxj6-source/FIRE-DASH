@@ -19,6 +19,12 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
     const visibleSkins = skins.filter(s => {
         // La skin Error 666 appare solo se sbloccata tramite codice
         if (s.id === 's666') return unlockedSkins.includes(s.id);
+
+        // MODIFICA: Le skin Evento (Natale) NON appaiono qui se non sono ancora possedute.
+        // Devono essere acquistate/viste solo nella sezione Evento Natale.
+        // Una volta sbloccate, appaiono qui per poter essere equipaggiate.
+        if (s.isEvent && !unlockedSkins.includes(s.id)) return false;
+
         return true;
     });
 
@@ -65,8 +71,11 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
                             <div className="absolute top-4 right-4 flex flex-col items-end gap-2">
                                 {skin.requiredTier === 'vip' && <span className="text-[9px] bg-yellow-500 text-black px-2 py-0.5 rounded-full font-black shadow-lg">VIP</span>}
                                 {skin.requiredTier === 'premium' && <span className="text-[9px] bg-purple-500 text-white px-2 py-0.5 rounded-full font-black shadow-lg">PREM</span>}
-                                {isChristmasSeason && !isUnlocked && skin.cost > 0 && (
+                                {isChristmasSeason && !isUnlocked && skin.cost > 0 && !skin.isEvent && (
                                     <span className="text-[9px] bg-red-600 text-white px-2 py-0.5 rounded-full font-black uppercase animate-bounce shadow-xl">OFFERTA</span>
+                                )}
+                                {skin.canFly && (
+                                    <span className="text-[9px] bg-blue-500 text-white px-2 py-0.5 rounded-full font-black shadow-lg animate-pulse">VOLA</span>
                                 )}
                             </div>
 
@@ -124,7 +133,7 @@ const SkinSelector: React.FC<Props> = ({ skins, unlockedSkins, selectedSkinId, g
             
             <div className="mt-16 text-center text-gray-600 max-w-lg z-10">
                 <p className="text-[10px] font-bold uppercase tracking-[0.3em] mb-2">Collezionale Tutte</p>
-                <p className="text-[9px] italic">Alcune skin sono sbloccabili solo con il grado VIP o tramite codici segreti speciali.</p>
+                <p className="text-[9px] italic">Le skin evento (come quelle di Natale) appaiono qui solo dopo averle sbloccate nella loro sezione dedicata.</p>
             </div>
         </div>
     );

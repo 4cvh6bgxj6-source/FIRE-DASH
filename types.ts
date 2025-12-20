@@ -6,7 +6,8 @@ export enum AppState {
     GAME = 'GAME',
     SHOP = 'SHOP',
     SKINS = 'SKINS',
-    GIFT_SHOP = 'GIFT_SHOP'
+    GIFT_SHOP = 'GIFT_SHOP',
+    CHRISTMAS_EVENT = 'CHRISTMAS_EVENT'
 }
 
 export interface Level {
@@ -28,6 +29,7 @@ export interface Skin {
     requiredTier?: 'free' | 'premium' | 'vip';
     isGlitched?: boolean;
     canFly?: boolean;
+    isEvent?: boolean; // Nuova proprietà per identificare skin evento
 }
 
 export interface UserStats {
@@ -36,4 +38,7 @@ export interface UserStats {
     isPremium: boolean;
     isVip: boolean;
     selectedSkinId: string;
+    hasChristmasName?: boolean; // Ha sbloccato la funzionalità (Bundle Natale)
+    nameColorType?: 'default' | 'rainbow' | 'christmas' | 'custom'; // Tipo di colore attivo
+    customNameHex?: string; // Colore esadecimale personalizzato
 }
