@@ -273,7 +273,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             const prog = Math.min(100, rawProgress);
             setProgress(prog);
             
-            if (prog >= 100 && !bossKilled) setGameStatus('won');
+            if (prog >= 100 && !bossKilled) {
+                if (!level.isBossBattle) setGemsCollected(g => g + 100);
+                setGameStatus('won');
+            }
 
             const px = 150; 
             const bossScreenX = canvas.width - 180;
@@ -307,7 +310,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                         if (screenPX + p.width > bossScreenX && screenPX < bossScreenX + 100 && p.y + p.height > bossScreenY && p.y < bossScreenY + 100) {
                             p.active = false;
                             setBossKilled(true);
-                            setGemsCollected(g => g + 1000); // Bonus Doppio per la kill finale
+                            setGemsCollected(g => g + 500); // 500 Gemme per Boss Kill
                             setGameStatus('won');
                         }
                     }
@@ -622,7 +625,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                             <div className="flex flex-col items-center justify-center gap-4 mb-6 relative z-10">
                                 <i className="fas fa-gem text-5xl md:text-6xl text-blue-400 drop-shadow-[0_0_15px_rgba(59,130,246,0.6)] animate-[bounce_2s_infinite]"></i>
                                 <div className="text-center"><div className="text-4xl md:text-5xl font-black text-white italic tracking-wide">+{gemsCollected}</div><div className="text-[10px] font-bold text-gray-400 uppercase tracking-[0.2em] mt-1">Totale Gemme</div></div>
-                                {bossKilled && <div className="bg-red-900/50 border border-red-500 px-4 py-2 rounded-xl flex items-center gap-2 animate-pulse mt-2"><i className="fas fa-skull text-red-500 text-lg"></i><span className="text-red-200 font-black uppercase text-xs">BOSS KILL BONUS (+1000)</span></div>}
+                                {bossKilled && <div className="bg-red-900/50 border border-red-500 px-4 py-2 rounded-xl flex items-center gap-2 animate-pulse mt-2"><i className="fas fa-skull text-red-500 text-lg"></i><span className="text-red-200 font-black uppercase text-xs">BOSS KILL BONUS (+500)</span></div>}
+                                {!bossKilled && !level.isBossBattle && <div className="bg-green-900/50 border border-green-500 px-4 py-2 rounded-xl flex items-center gap-2 animate-pulse mt-2"><i className="fas fa-flag-checkered text-green-500 text-lg"></i><span className="text-green-200 font-black uppercase text-xs">LEVEL COMPLETE (+100)</span></div>}
                             </div>
                             <button onClick={() => onEnd(true, gemsCollected)} className="w-full bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-500 hover:to-blue-400 text-white font-black py-4 rounded-xl uppercase tracking-[0.2em] transition-all transform active:scale-95 border-b-4 border-blue-900 shadow-lg relative z-10 text-sm md:text-base">CONTINUA</button>
                         </div>
