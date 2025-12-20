@@ -120,27 +120,27 @@ const Shop: React.FC<Props> = ({ stats, isChristmasSeason, onPurchase, onBack })
                     <ul className="space-y-5 mb-12">
                         <li className="flex items-center gap-4 text-yellow-400 font-black tracking-wide">
                             <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
-                                <i className="fas fa-star text-yellow-400"></i>
+                                <i className="fas fa-skull text-yellow-400"></i>
                             </div>
-                            Nome Arcobaleno in Chat/Menu
+                            Mappa Extra Sbloccata: "THE FINAL BOSS"
                         </li>
-                        <li className="flex items-center gap-4 text-gray-300 font-medium">
-                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
-                                <i className="fas fa-check text-yellow-400"></i>
+                        <li className="flex items-center gap-4 text-green-400 font-black tracking-wide bg-green-900/20 p-2 rounded-lg border border-green-500/30">
+                            <div className="w-6 h-6 rounded-full bg-green-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-crosshairs text-green-400"></i>
                             </div>
-                            Tutte le Skin Premium incluse
+                            SKIN APPOSTA PER FINAL BOSS (BOSS HUNTER)
+                        </li>
+                        <li className="flex items-center gap-4 text-yellow-300 font-bold">
+                            <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
+                                <i className="fas fa-tachometer-alt text-yellow-400"></i>
+                            </div>
+                            Darkness Hardcore a 2x (Invece di 4x)
                         </li>
                         <li className="flex items-center gap-4 text-gray-300 font-medium">
                             <div className="w-6 h-6 rounded-full bg-yellow-500/20 flex items-center justify-center text-[10px]">
                                 <i className="fas fa-check text-yellow-400"></i>
                             </div>
                             X2 Gemme (Double reward!)
-                        </li>
-                        <li className="flex items-center gap-4 text-yellow-200 font-bold">
-                            <div className="w-6 h-6 rounded-full bg-red-500/20 flex items-center justify-center text-[10px]">
-                                <i className="fas fa-lock-open text-red-400"></i>
-                            </div>
-                            Accesso Skin ADMIN & ERROR 666
                         </li>
                     </ul>
 

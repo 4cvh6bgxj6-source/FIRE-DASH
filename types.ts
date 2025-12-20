@@ -17,6 +17,8 @@ export interface Level {
     speedMultiplier: number;
     color: string;
     locked?: boolean;
+    requiredTier?: 'vip'; // Nuova proprietà: Richiede VIP
+    isBossBattle?: boolean; // Nuova proprietà: Attiva la logica del Boss
 }
 
 export interface Skin {
@@ -29,6 +31,8 @@ export interface Skin {
     requiredTier?: 'free' | 'premium' | 'vip';
     isGlitched?: boolean;
     canFly?: boolean;
+    canShoot?: boolean; // Abilità Santa Claus (Gifts)
+    hasBossFinisher?: boolean; // NUOVA ABILITÀ: Bazooka finale contro il Boss
     isEvent?: boolean; // Nuova proprietà per identificare skin evento
 }
 

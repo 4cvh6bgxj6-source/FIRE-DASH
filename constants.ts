@@ -10,6 +10,16 @@ export const LEVELS: Level[] = [
     { id: '6', name: 'Cant Let Go', difficulty: 'Hard', speedMultiplier: 1.5, color: '#f87171' },
     { id: '7', name: 'Jumper', difficulty: 'Hard', speedMultiplier: 1.6, color: '#c084fc' },
     { id: '8', name: 'Darkness Hardcore', difficulty: 'Extreme', speedMultiplier: 4, color: '#ef4444' },
+    // NUOVO LIVELLO BOSS
+    { 
+        id: '99', 
+        name: 'The Final Boss', 
+        difficulty: 'Demon', 
+        speedMultiplier: 5, // VELOCITÀ AUMENTATA A 5X
+        color: '#ff00ff', 
+        requiredTier: 'vip', 
+        isBossBattle: true 
+    },
 ];
 
 export const SKINS: Skin[] = [
@@ -30,45 +40,29 @@ export const SKINS: Skin[] = [
     { id: 's7', name: 'Ball (Sole)', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
     { id: 's10', name: 'Spider Dash', color: '#ff4500', cost: 550, unlocked: false, icon: 'fa-spider', requiredTier: 'vip' },
     
-    // EVENTO NATALE (Costi alti singolarmente per incentivare il bundle)
-    { id: 'xmas-1', name: 'Frosty Snowman', color: '#e0f2fe', cost: 4000, unlocked: false, icon: 'fa-snowman', requiredTier: 'free', isEvent: true },
+    // NUOVA SKIN BOSS HUNTER (VIP)
     { 
-        id: 'xmas-2', 
-        name: 'Rudolph', 
-        color: '#78350f', 
-        cost: 4000, 
+        id: 's-boss', 
+        name: 'Boss Hunter', 
+        color: '#4ade80', // Verde Neon Militare
+        cost: 2000, 
         unlocked: false, 
-        icon: 'fa-sleigh', 
-        requiredTier: 'free', 
-        isEvent: true,
-        canFly: true // RUDOLPH ORA PUÒ VOLARE!
+        icon: 'fa-crosshairs', 
+        requiredTier: 'vip',
+        hasBossFinisher: true // ABILITÀ BAZOOKA
     },
+
+    // EVENTO NATALE
+    { id: 'xmas-1', name: 'Frosty Snowman', color: '#e0f2fe', cost: 4000, unlocked: false, icon: 'fa-snowman', requiredTier: 'free', isEvent: true },
+    { id: 'xmas-2', name: 'Rudolph', color: '#78350f', cost: 4000, unlocked: false, icon: 'fa-sleigh', requiredTier: 'free', isEvent: true, canFly: true },
+    { id: 'xmas-santa', name: 'Santa Claus', color: '#ef4444', cost: 6000, unlocked: false, icon: 'fa-candy-cane', requiredTier: 'free', isEvent: true, canShoot: true },
     { id: 'xmas-3', name: 'Xmas Tree', color: '#166534', cost: 4000, unlocked: false, icon: 'fa-tree', requiredTier: 'free', isEvent: true },
     { id: 'xmas-4', name: 'Surprise Gift', color: '#dc2626', cost: 4000, unlocked: false, icon: 'fa-gift', requiredTier: 'free', isEvent: true },
     { id: 'xmas-5', name: 'Candy Cane', color: '#f43f5e', cost: 4000, unlocked: false, icon: 'fa-candy-cane', requiredTier: 'free', isEvent: true },
 
     // Secrets
-    { 
-        id: 's8', 
-        name: 'Admin Glitch', 
-        color: '#00ff41', 
-        cost: 999, 
-        unlocked: false, 
-        icon: 'fa-user-secret', 
-        requiredTier: 'vip', 
-        isGlitched: true 
-    },
-    { 
-        id: 's666', 
-        name: 'Error 666', 
-        color: '#ff0000', 
-        cost: 0, 
-        unlocked: false, 
-        icon: 'fa-skull', 
-        requiredTier: 'vip', 
-        isGlitched: true, 
-        canFly: true 
-    }
+    { id: 's8', name: 'Admin Glitch', color: '#00ff41', cost: 999, unlocked: false, icon: 'fa-user-secret', requiredTier: 'vip', isGlitched: true },
+    { id: 's666', name: 'Error 666', color: '#ff0000', cost: 0, unlocked: false, icon: 'fa-skull', requiredTier: 'vip', isGlitched: true, canFly: true }
 ];
 
 export const GAME_GRAVITY = 0.65;

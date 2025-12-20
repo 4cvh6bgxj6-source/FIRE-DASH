@@ -60,6 +60,12 @@ const ChristmasEvent: React.FC<Props> = ({ skins, unlockedSkins, gems, onUnlock,
                                     <i className="fas fa-wind mr-1"></i> VOLA!
                                 </div>
                             )}
+                            {/* Badge SPARA per Santa */}
+                            {skin.canShoot && (
+                                <div className="absolute top-2 right-2 bg-red-600 text-white text-[8px] font-black px-2 py-0.5 rounded-full uppercase z-10 animate-pulse shadow-lg shadow-red-500/50 border border-white/20">
+                                    <i className="fas fa-bomb mr-1"></i> ATK
+                                </div>
+                            )}
 
                             <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-3xl mb-4 shadow-lg transition-transform group-hover:scale-110" style={{backgroundColor: skin.color}}>
                                 <i className={`fas ${skin.icon} text-white`}></i>
@@ -100,14 +106,20 @@ const ChristmasEvent: React.FC<Props> = ({ skins, unlockedSkins, gems, onUnlock,
                         <div className="text-gray-400 text-xs font-bold uppercase tracking-widest mb-6 leading-relaxed">
                             <p className="mb-2">Sblocca tutte le {eventSkins.length} Skin esclusive istantaneamente!</p>
                             
-                            <div className="flex flex-col gap-2 mt-4">
+                            <div className="flex flex-col gap-2 mt-4 text-left">
+                                <p className="text-red-300 flex items-center justify-center md:justify-start gap-2 bg-red-900/30 p-2 rounded-lg border border-red-500/30">
+                                    <i className="fas fa-gift text-lg animate-bounce"></i>
+                                    <span>
+                                        <span className="text-white font-black">SANTA CLAUS:</span> LANCIA REGALI PER <span className="text-yellow-400 underline decoration-red-500">DISTRUGGERE GLI OSTACOLI!</span>
+                                    </span>
+                                </p>
                                 <p className="text-blue-300 flex items-center justify-center md:justify-start gap-2 bg-blue-900/30 p-2 rounded-lg border border-blue-500/30">
-                                    <i className="fas fa-exclamation-circle"></i>
-                                    INCLUDE <span className="text-yellow-400">RUDOLPH</span> CHE PUÒ <span className="text-white underline decoration-blue-500 underline-offset-4">SOLTANTO VOLARE!</span>
+                                    <i className="fas fa-wind"></i>
+                                    RUDOLPH PUÒ VOLARE
                                 </p>
                                 <p className="text-green-300 flex items-center justify-center md:justify-start gap-2 bg-green-900/30 p-2 rounded-lg border border-green-500/30 animate-pulse">
                                     <i className="fas fa-palette"></i>
-                                    BONUS: <span className="christmas-text">PERSONALIZZA COLORE NOME!</span>
+                                    BONUS: COLORE NOME NATALIZIO
                                 </p>
                             </div>
                         </div>
@@ -117,6 +129,7 @@ const ChristmasEvent: React.FC<Props> = ({ skins, unlockedSkins, gems, onUnlock,
                                 <div key={s.id} className="w-10 h-10 rounded-full border-2 border-black flex items-center justify-center text-xs shadow-lg relative group" style={{backgroundColor: s.color}}>
                                     <i className={`fas ${s.icon} text-white`}></i>
                                     {s.canFly && <div className="absolute -top-1 -right-1 w-3 h-3 bg-blue-500 rounded-full border border-black animate-ping"></div>}
+                                    {s.canShoot && <div className="absolute -top-1 -right-1 w-3 h-3 bg-red-600 rounded-full border border-black animate-ping"></div>}
                                 </div>
                             ))}
                         </div>

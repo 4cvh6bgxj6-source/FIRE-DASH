@@ -129,13 +129,19 @@ const App: React.FC = () => {
                 />
             )}
             {view === AppState.LEVEL_SELECT && (
-                <LevelSelect levels={LEVELS} onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} onBack={() => setView(AppState.MENU)} />
+                <LevelSelect 
+                    levels={LEVELS} 
+                    stats={stats} // Passiamo stats per controllare il VIP
+                    onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} 
+                    onBack={() => setView(AppState.MENU)} 
+                />
             )}
             {view === AppState.GAME && currentLevel && (
                 <GameView 
                     level={currentLevel} 
                     skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} 
                     username={stats.username} 
+                    isVip={stats.isVip} // PASSATO IL DATO VIP
                     onEnd={handleLevelEnd} 
                 />
             )}
