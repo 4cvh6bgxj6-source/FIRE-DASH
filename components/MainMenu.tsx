@@ -6,17 +6,11 @@ interface Props {
     onNavigate: (view: AppState) => void;
     isChristmas?: boolean;
     onUpdateStats: React.Dispatch<React.SetStateAction<UserStats>>;
+    onLogout: () => void;
 }
 
-const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas, onUpdateStats }) => {
+const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas, onUpdateStats, onLogout }) => {
     const [showColorModal, setShowColorModal] = useState(false);
-
-    const forceUpdate = () => {
-        sessionStorage.clear();
-        const url = new URL(window.location.href);
-        url.searchParams.set('reload', Date.now().toString());
-        window.location.href = url.toString();
-    };
 
     const getNameStyle = () => {
         if (stats.nameColorType === 'christmas') return { className: 'christmas-text' };
@@ -49,8 +43,13 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas, onUpdateSta
                     </div>
                 </div>
                 
-                <button onClick={forceUpdate} className="bg-gray-800/50 p-3 rounded-xl text-gray-400 hover:text-white">
-                    <i className="fas fa-sync-alt"></i>
+                {/* Tasto Logout */}
+                <button 
+                    onClick={onLogout} 
+                    className="bg-red-900/30 border border-red-500/30 p-3 rounded-xl text-red-400 hover:bg-red-900/50 hover:text-white transition-all active:scale-95"
+                    title="Esci"
+                >
+                    <i className="fas fa-sign-out-alt"></i>
                 </button>
             </div>
 
@@ -113,7 +112,6 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas, onUpdateSta
                 <p className="text-gray-500 text-[9px] uppercase font-bold tracking-[0.3em]">Fire Dev Team</p>
             </div>
 
-            {/* ... Color Modal Code (omitted for brevity, assume unchanged logic) ... */}
             {showColorModal && (
                 <div className="fixed inset-0 z-[100] bg-black/90 backdrop-blur-md flex items-center justify-center p-4">
                      <div className="bg-gray-900 border-2 border-white/20 rounded-3xl p-6 w-full max-w-sm relative">

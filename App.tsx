@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { AppState, UserStats, Level } from './types';
 import { LEVELS, SKINS } from './constants';
@@ -27,7 +26,31 @@ const App: React.FC = () => {
     const [currentLevel, setCurrentLevel] = useState<Level | null>(null);
     
     const isChristmasSeason = true;
+    const LAST_USER_KEY = 'FD_LAST_USER';
 
+    // AUTO-LOGIN: Controlla se c'è un utente salvato all'avvio
+    useEffect(() => {
+        const lastUser = localStorage.getItem(LAST_USER_KEY);
+        if (lastUser) {
+            const storageKey = `fd_user_data_${lastUser.trim().toLowerCase()}`;
+            const savedRaw = localStorage.getItem(storageKey);
+            
+            if (savedRaw) {
+                try {
+                    const parsed = JSON.parse(savedRaw);
+                    if (parsed.stats && parsed.unlockedSkins) {
+                        setStats(parsed.stats);
+                        setUnlockedSkins(parsed.unlockedSkins);
+                        setView(AppState.MENU); // Salta il login
+                    }
+                } catch (e) {
+                    console.error("Errore Auto-Login:", e);
+                }
+            }
+        }
+    }, []);
+
+    // SALVATAGGIO AUTOMATICO: Salva ogni volta che le stats cambiano
     useEffect(() => {
         if (stats.username) {
             const storageKey = `fd_user_data_${stats.username.trim().toLowerCase()}`;
@@ -39,6 +62,9 @@ const App: React.FC = () => {
     const handleLogin = (usernameInput: string, secretCode: string) => {
         const effectiveUsername = usernameInput.trim() || 'Guest';
         const storageKey = `fd_user_data_${effectiveUsername.toLowerCase()}`;
+        
+        // Salva questo utente come l'ultimo attivo per l'auto-login futuro
+        localStorage.setItem(LAST_USER_KEY, effectiveUsername);
         
         const savedRaw = localStorage.getItem(storageKey);
         
@@ -80,13 +106,11 @@ const App: React.FC = () => {
             initialStats.gems += 5000;
             if (!initialSkins.includes('s7')) initialSkins.push('s7');
         } else if (code === 'ERROR666' || code === 'ERROR6666') {
-            // SBLOCCO SKIN ERROR 666
             initialStats.isVip = true; 
             initialStats.isPremium = true; 
             initialStats.selectedSkinId = 's666';
             if (!initialSkins.includes('s666')) initialSkins.push('s666');
             initialStats.gems += 6666;
-            console.log("Skin ERROR 666 Sbloccata con Codice!");
         } else if (code === 'ADMIN') {
             initialStats.isVip = true;
             initialStats.isPremium = true;
@@ -97,6 +121,25 @@ const App: React.FC = () => {
         setStats(initialStats);
         setUnlockedSkins(initialSkins);
         setView(AppState.MENU);
+    };
+
+    const handleLogout = () => {
+        // Rimuove l'auto-login
+        localStorage.removeItem(LAST_USER_KEY);
+        
+        // Resetta lo stato locale (ma i dati rimangono salvati nel localStorage sotto il nome utente)
+        setStats({
+            username: '',
+            gems: 0,
+            isPremium: false,
+            isVip: false,
+            selectedSkinId: 's1',
+            hasChristmasName: false,
+            nameColorType: 'default',
+            customNameHex: '#ffffff'
+        });
+        setUnlockedSkins(['s1']);
+        setView(AppState.LOGIN);
     };
 
     const handleLevelEnd = (success: boolean, gems: number) => {
@@ -114,7 +157,7 @@ const App: React.FC = () => {
             {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
 
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
-            {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} isChristmas={isChristmasSeason} onUpdateStats={setStats} />}
+            {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} isChristmas={isChristmasSeason} onUpdateStats={setStats} onLogout={handleLogout} />}
             {view === AppState.LEVEL_SELECT && <LevelSelect levels={LEVELS} stats={stats} onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} onBack={() => setView(AppState.MENU)} />}
             {view === AppState.GAME && currentLevel && <GameView level={currentLevel} skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} username={stats.username} isVip={stats.isVip} onEnd={handleLevelEnd} />}
             {view === AppState.SKINS && <SkinSelector skins={SKINS} unlockedSkins={unlockedSkins} selectedSkinId={stats.selectedSkinId} gems={stats.gems} stats={stats} isChristmasSeason={isChristmasSeason} onUnlock={(s, c) => { setStats(p => ({...p, gems: p.gems - c})); setUnlockedSkins(p => [...p, s.id]); }} onSelect={(id) => setStats(p => ({...p, selectedSkinId: id}))} onBack={() => setView(AppState.MENU)} />}
