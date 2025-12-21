@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -38,6 +37,8 @@
         #root {
             height: 100%;
             width: 100%;
+            display: flex;
+            flex-direction: column;
         }
 
         .pixel-font {
@@ -88,11 +89,21 @@
             to { background-position: 100px 500px; }
         }
 
-        /* Utility per nascondere elementi se lo schermo è troppo basso (orizzontale mobile) */
+        /* Responsive fixes per schermi con pochissima altezza (Landscape Mobile) */
         @media (max-height: 480px) {
+            .landscape-compact-ui { 
+                flex-direction: row !important; 
+                justify-content: space-around !important;
+                padding: 10px !important;
+            }
+            .landscape-logo-shrink { 
+                font-size: 1.5rem !important; 
+                margin-top: 0 !important;
+                position: absolute !important;
+                top: 10px !important;
+            }
             .landscape-hide { display: none !important; }
-            .landscape-mini { font-size: 0.5rem !important; }
-            .landscape-scale-down { transform: scale(0.6); }
+            .landscape-btn-shrink { scale: 0.7; }
         }
     </style>
 <script type="importmap">
