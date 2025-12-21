@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="it">
 <head>
@@ -9,83 +10,91 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Press+Start+2P&display=swap');
         
-        :root {
-            --sat: env(safe-area-inset-top);
-            --sar: env(safe-area-inset-right);
-            --sab: env(safe-area-inset-bottom);
-            --sal: env(safe-area-inset-left);
-        }
-
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
+        body {
             margin: 0;
             padding: 0;
-        }
-
-        body, html {
             background-color: #000;
             color: white;
             overflow: hidden;
             font-family: 'Orbitron', sans-serif;
-            height: 100%;
-            width: 100%;
-            position: fixed;
-            touch-action: none;
-        }
-
-        #root {
-            height: 100%;
-            width: 100%;
-            display: flex;
-            flex-direction: column;
+            touch-action: none; 
+            -webkit-user-select: none;
+            user-select: none;
         }
 
         .pixel-font {
             font-family: 'Press Start 2P', cursive;
         }
 
+        canvas {
+            image-rendering: pixelated;
+            touch-action: none;
+        }
+
+        /* EFFETTO GLITCH TOTALE */
+        .glitch-screen {
+            animation: glitch-anim 0.2s infinite;
+            filter: hue-rotate(90deg) contrast(1.5);
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); filter: invert(0.1); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); filter: brightness(1.2); }
+            100% { transform: translate(0); }
+        }
+
         .rainbow-text {
-            background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff, #ff0000);
+            background: linear-gradient(
+                to right,
+                #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff, #ff0000
+            );
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-size: 200% auto;
             animation: rainbow-flow 3s linear infinite;
+            font-weight: 900;
+        }
+
+        .christmas-text {
+            background: linear-gradient(
+                to right,
+                #ef4444, #ffffff, #22c55e, #ffd700, #ef4444
+            );
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-size: 200% auto;
+            animation: rainbow-flow 4s linear infinite;
+            font-weight: 900;
+            text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
         }
 
         @keyframes rainbow-flow {
             to { background-position: 200% center; }
         }
+        
+        button {
+            -webkit-tap-highlight-color: transparent;
+        }
 
         .snow-container {
             position: fixed;
-            inset: 0;
-            pointer-events: none;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
             background-image: radial-gradient(circle at 10% 10%, white 1px, transparent 1px),
                               radial-gradient(circle at 50% 20%, white 1px, transparent 1px),
                               radial-gradient(circle at 80% 40%, white 1px, transparent 1px);
-            background-size: 250px 250px;
+            background-size: 200px 200px;
             animation: snow-fall 10s linear infinite;
-            z-index: 0;
         }
 
         @keyframes snow-fall {
             from { background-position: 0 0; }
-            to { background-position: 100px 500px; }
-        }
-
-        /* Responsive UI Scaling */
-        @media (max-height: 500px) {
-            .landscape-compact-login { flex-direction: row !important; gap: 1rem !important; }
-            .landscape-logo-mini { font-size: 1.8rem !important; margin-bottom: 0 !important; }
-            .landscape-form-compact { padding: 1rem !important; gap: 0.5rem !important; width: 60% !important; }
-            .landscape-input-compact { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; font-size: 1rem !important; }
-            .landscape-btn-compact { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; font-size: 0.8rem !important; }
-            
-            .landscape-menu-row { flex-direction: row !important; justify-content: space-evenly !important; width: 100%; }
-            .landscape-menu-logo { font-size: 2.5rem !important; }
-            .landscape-play-btn { width: 120px !important; height: 120px !important; font-size: 3rem !important; }
-            .landscape-hide { display: none !important; }
+            to { background-position: 100px 400px; }
         }
     </style>
 <script type="importmap">
