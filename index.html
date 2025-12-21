@@ -74,12 +74,18 @@
             to { background-position: 100px 500px; }
         }
 
-        /* Fix per layout orizzontale: invece di rimpicciolire, distanziamo */
+        /* Responsive UI Scaling */
         @media (max-height: 500px) {
-            .landscape-flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-around !important; width: 100%; }
-            .landscape-logo-size { font-size: 2.2rem !important; margin-bottom: 0 !important; }
-            .landscape-btn-size { width: 140px !important; height: 140px !important; font-size: 4rem !important; }
-            .landscape-hide-text { display: none !important; }
+            .landscape-compact-login { flex-direction: row !important; gap: 1rem !important; }
+            .landscape-logo-mini { font-size: 1.8rem !important; margin-bottom: 0 !important; }
+            .landscape-form-compact { padding: 1rem !important; gap: 0.5rem !important; width: 60% !important; }
+            .landscape-input-compact { padding-top: 0.5rem !important; padding-bottom: 0.5rem !important; font-size: 1rem !important; }
+            .landscape-btn-compact { padding-top: 0.75rem !important; padding-bottom: 0.75rem !important; font-size: 0.8rem !important; }
+            
+            .landscape-menu-row { flex-direction: row !important; justify-content: space-evenly !important; width: 100%; }
+            .landscape-menu-logo { font-size: 2.5rem !important; }
+            .landscape-play-btn { width: 120px !important; height: 120px !important; font-size: 3rem !important; }
+            .landscape-hide { display: none !important; }
         }
     </style>
 <script type="importmap">
