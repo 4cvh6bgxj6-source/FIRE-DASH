@@ -17,28 +17,28 @@
             --sal: env(safe-area-inset-left);
         }
 
-        body {
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body, html {
             margin: 0;
             padding: 0;
             background-color: #000;
             color: white;
             overflow: hidden;
             font-family: 'Orbitron', sans-serif;
-            touch-action: none; 
-            -webkit-user-select: none;
-            user-select: none;
-            height: 100vh;
-            height: 100svh;
-            width: 100vw;
+            height: 100%;
+            width: 100%;
             position: fixed;
-            -webkit-text-size-adjust: 100%;
+            touch-action: none;
         }
 
         #root {
             height: 100%;
             width: 100%;
-            display: flex;
-            flex-direction: column;
+            position: relative;
         }
 
         .pixel-font {
@@ -47,22 +47,9 @@
 
         canvas {
             image-rendering: pixelated;
-            touch-action: none;
             display: block;
-        }
-
-        .glitch-screen {
-            animation: glitch-anim 0.2s infinite;
-            filter: hue-rotate(90deg) contrast(1.5);
-        }
-
-        @keyframes glitch-anim {
-            0% { transform: translate(0); }
-            20% { transform: translate(-2px, 2px); }
-            40% { transform: translate(-2px, -2px); filter: invert(0.1); }
-            60% { transform: translate(2px, 2px); }
-            80% { transform: translate(2px, -2px); filter: brightness(1.2); }
-            100% { transform: translate(0); }
+            width: 100% !important;
+            height: 100% !important;
         }
 
         .rainbow-text {
@@ -79,41 +66,28 @@
             -webkit-text-fill-color: transparent;
             background-size: 200% auto;
             animation: rainbow-flow 4s linear infinite;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.4);
         }
 
         @keyframes rainbow-flow {
             to { background-position: 200% center; }
         }
-        
-        button {
-            -webkit-tap-highlight-color: transparent;
-        }
 
         .snow-container {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            inset: 0;
             pointer-events: none;
             background-image: radial-gradient(circle at 10% 10%, white 1px, transparent 1px),
                               radial-gradient(circle at 50% 20%, white 1px, transparent 1px),
                               radial-gradient(circle at 80% 40%, white 1px, transparent 1px);
-            background-size: 200px 200px;
+            background-size: 250px 250px;
             animation: snow-fall 10s linear infinite;
             z-index: 0;
         }
 
         @keyframes snow-fall {
             from { background-position: 0 0; }
-            to { background-position: 100px 400px; }
+            to { background-position: 100px 500px; }
         }
-
-        .pt-safe { padding-top: var(--sat); }
-        .pb-safe { padding-bottom: var(--sab); }
-        .pl-safe { padding-left: var(--sal); }
-        .pr-safe { padding-right: var(--sar); }
     </style>
 <script type="importmap">
 {

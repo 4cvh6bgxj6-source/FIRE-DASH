@@ -11,69 +11,61 @@ interface Props {
 
 const LevelSelect: React.FC<Props> = ({ levels, stats, onSelectLevel, onBack }) => {
     return (
-        <div className="flex flex-col items-center h-full w-full bg-black overflow-y-auto pb-24 relative">
-            <div className="w-full max-w-4xl flex justify-between items-center p-3 md:p-8 sticky top-0 bg-black/90 backdrop-blur-md z-50 pt-safe pl-safe pr-safe border-b border-white/5">
-                <button 
-                    onClick={onBack}
-                    className="bg-white/10 hover:bg-white/20 px-3 py-1.5 rounded-lg text-white font-bold transition-all text-[10px] border border-white/5 active:scale-90"
-                >
-                    <i className="fas fa-arrow-left"></i>
+        <div className="h-full w-full bg-black flex flex-col relative overflow-hidden">
+            
+            {/* Header Sticky e Compatto */}
+            <div className="w-full bg-black/95 backdrop-blur-md border-b border-white/5 px-4 md:px-8 py-3 flex justify-between items-center z-50 pt-[calc(env(safe-area-inset-top)+8px)] pl-[calc(env(safe-area-inset-left)+16px)] pr-[calc(env(safe-area-inset-right)+16px)]">
+                <button onClick={onBack} className="w-8 h-8 md:w-10 md:h-10 bg-white/5 hover:bg-white/10 rounded-lg flex items-center justify-center text-white active:scale-90 transition-all border border-white/10">
+                    <i className="fas fa-arrow-left text-xs"></i>
                 </button>
-                <h2 className="text-base md:text-3xl font-black italic text-white uppercase tracking-widest">LIVELLI</h2>
-                <div className="flex items-center gap-1.5 bg-blue-900/30 px-2.5 py-1 rounded-full border border-blue-500/20">
-                    <i className="fas fa-gem text-blue-400 text-[8px]"></i>
-                    <span className="text-white text-[10px] font-black">{stats.gems}</span>
+                <h2 className="text-white font-black italic uppercase tracking-[0.2em] text-[10px] md:text-lg">SELEZIONE LIVELLO</h2>
+                <div className="flex items-center gap-2 bg-blue-900/30 px-3 py-1 rounded-full border border-blue-500/20">
+                    <i className="fas fa-gem text-blue-400 text-[9px]"></i>
+                    <span className="text-white font-black text-[10px]">{stats.gems}</span>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 w-full max-w-5xl px-3 md:px-8 mt-4">
+            {/* Lista Livelli - Griglia fitta per Landscape */}
+            <div className="flex-1 overflow-y-auto p-4 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 pb-[calc(env(safe-area-inset-bottom)+20px)] pl-[calc(env(safe-area-inset-left)+16px)] pr-[calc(env(safe-area-inset-right)+16px)]">
                 {levels.map((level) => {
                     const isVipLocked = level.requiredTier === 'vip' && !stats.isVip;
-                    const isSkinLocked = level.requiredSkinId && stats.selectedSkinId !== level.requiredSkinId;
-                    const isLocked = isVipLocked || isSkinLocked;
+                    const isLocked = isVipLocked || (level.requiredSkinId && stats.selectedSkinId !== level.requiredSkinId);
                     
                     return (
                         <div 
                             key={level.id}
-                            onClick={() => {
-                                if (!isLocked) onSelectLevel(level);
-                                else alert(isVipLocked ? "Richiede VIP!" : "Richiede Skin BOSS HUNTER!");
-                            }}
-                            className={`group relative border rounded-xl p-3 md:p-5 transition-all ${
+                            onClick={() => !isLocked && onSelectLevel(level)}
+                            className={`group relative rounded-2xl p-3 transition-all border ${
                                 isLocked 
-                                ? 'bg-gray-900/30 border-gray-800 opacity-60 grayscale' 
-                                : 'bg-gray-900/60 border-white/5 hover:border-blue-500/50 active:scale-95'
+                                ? 'bg-gray-900/40 border-gray-800 grayscale' 
+                                : 'bg-gray-900 border-white/5 hover:border-blue-500/50 active:scale-95 cursor-pointer'
                             }`}
                         >
                             {isLocked && (
-                                <div className="absolute inset-0 flex items-center justify-center bg-black/40 z-10 rounded-xl">
-                                    <i className={`fas ${isVipLocked ? 'fa-crown text-yellow-500' : 'fa-crosshairs text-emerald-400'} text-xl`}></i>
+                                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-10 rounded-2xl">
+                                    <i className="fas fa-lock text-white/30 text-xl"></i>
                                 </div>
                             )}
 
-                            <div className="flex justify-between items-start mb-2">
-                                <div className="max-w-[70%]">
-                                    <h3 className="text-xs md:text-base font-black text-white uppercase tracking-tighter truncate leading-tight">{level.name}</h3>
-                                    <span className={`text-[7px] md:text-[8px] font-bold px-1.5 py-0.5 rounded uppercase ${
-                                        level.difficulty === 'Extreme' ? 'bg-red-900/50 text-red-200' : 
-                                        level.difficulty === 'Demon' ? 'bg-purple-900/50 text-purple-200' :
-                                        'bg-blue-900/50 text-blue-200'
+                            <div className="flex flex-col gap-1 relative z-20">
+                                <h3 className="text-white font-black uppercase text-[10px] md:text-xs truncate tracking-tighter">{level.name}</h3>
+                                <div className="flex justify-between items-center mt-1">
+                                    <span className={`text-[7px] md:text-[8px] font-black px-1.5 py-0.5 rounded uppercase ${
+                                        level.difficulty === 'Extreme' ? 'bg-red-900 text-red-200' : 'bg-blue-900 text-blue-100'
                                     }`}>
                                         {level.difficulty}
                                     </span>
-                                </div>
-                                <div className="text-right">
-                                    <div className="text-gray-600 text-[6px] md:text-[8px] uppercase font-black">SPEED</div>
-                                    <div className="font-black text-[10px] md:text-sm text-white">{level.speedMultiplier}x</div>
+                                    <span className="text-white font-black text-[8px] opacity-40">{level.speedMultiplier}x</span>
                                 </div>
                             </div>
 
-                            <div className="h-1 w-full bg-gray-800/50 rounded-full overflow-hidden mt-1">
-                                <div 
-                                    className="h-full transition-all duration-500"
-                                    style={{ backgroundColor: level.color, width: isLocked ? '0%' : '100%' }}
-                                ></div>
+                            {/* Barra decorativa progresso (finta per ora) */}
+                            <div className="absolute bottom-0 left-0 w-full h-1 bg-gray-800 rounded-b-2xl overflow-hidden">
+                                <div className="h-full bg-emerald-500 opacity-40" style={{width: '0%'}}></div>
                             </div>
+
+                            {/* Glow di sfondo */}
+                            <div className="absolute -top-10 -right-10 w-20 h-20 rounded-full opacity-5 group-hover:opacity-10 transition-opacity" style={{backgroundColor: level.color}}></div>
                         </div>
                     );
                 })}
