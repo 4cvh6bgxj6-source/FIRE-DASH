@@ -45,27 +45,13 @@
             font-family: 'Press Start 2P', cursive;
         }
 
-        canvas {
-            image-rendering: pixelated;
-            display: block;
-            width: 100%;
-            height: 100%;
-        }
-
+        /* Effetti Testo */
         .rainbow-text {
             background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff, #ff0000);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-size: 200% auto;
             animation: rainbow-flow 3s linear infinite;
-        }
-
-        .christmas-text {
-            background: linear-gradient(to right, #ef4444, #ffffff, #22c55e, #ffd700, #ef4444);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-size: 200% auto;
-            animation: rainbow-flow 4s linear infinite;
         }
 
         @keyframes rainbow-flow {
@@ -89,21 +75,12 @@
             to { background-position: 100px 500px; }
         }
 
-        /* Responsive fixes per schermi con pochissima altezza (Landscape Mobile) */
+        /* Fix per schermi bassi (Orizzontale Mobile) */
         @media (max-height: 480px) {
-            .landscape-compact-ui { 
-                flex-direction: row !important; 
-                justify-content: space-around !important;
-                padding: 10px !important;
-            }
-            .landscape-logo-shrink { 
-                font-size: 1.5rem !important; 
-                margin-top: 0 !important;
-                position: absolute !important;
-                top: 10px !important;
-            }
+            .landscape-row { flex-direction: row !important; gap: 2rem !important; }
+            .landscape-logo { font-size: 1.8rem !important; }
             .landscape-hide { display: none !important; }
-            .landscape-btn-shrink { scale: 0.7; }
+            .landscape-shrink { transform: scale(0.75); }
         }
     </style>
 <script type="importmap">
