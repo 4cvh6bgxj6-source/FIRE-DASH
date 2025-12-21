@@ -59,6 +59,7 @@ const MainMenu: React.FC<Props> = ({ stats, onNavigate, isChristmas, onUpdateSta
                     FIRE DASH
                 </h1>
                 <p className="text-orange-500 font-bold tracking-[0.5em] text-[10px] md:text-lg uppercase">ULTIMATE</p>
+                <div className="mt-2 text-gray-500 text-[9px] font-mono">v2.1 (Auto-Save)</div>
             </div>
 
             {/* Pulsanti Principali Ingranditi */}

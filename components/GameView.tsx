@@ -57,7 +57,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
     const shootCooldown = useRef(0); 
     const effects = useRef<Effect[]>([]);
 
-    // PLAYER ANCORA PIÙ GRANDE: 60x60
     const PLAYER_SIZE = 60;
     const player = useRef({
         y: 300, dy: 0, width: PLAYER_SIZE, height: PLAYER_SIZE, rotation: 0, isGrounded: false,
@@ -77,7 +76,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
 
     const isError666 = skin.id === 's666'; 
     const isAdminGlitch = skin.id === 's8';
-    const isGlitchedSkin = isError666 || isAdminGlitch; // Flag unificato per effetti mappa
+    const isGlitchedSkin = isError666 || isAdminGlitch;
     const isOmino = skin.id === 's-man';
     const canFlyActive = skin.canFly || adminFly;
     
@@ -127,7 +126,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
         if (!level.isBossBattle) {
             for (let i = 1200; i < levelLength - 1000; i += spacing + (Math.random() * 250)) {
                 const rand = Math.random();
-                // OSTACOLI PROPORZIONATI (60px)
                 if (rand < 0.45) obstacles.push({ x: i, width: PLAYER_SIZE, height: PLAYER_SIZE, type: 'spike' });
                 else if (rand < 0.75) obstacles.push({ x: i, width: 80, height: 80, type: 'block' });
                 else obstacles.push({ x: i, width: 45, height: 45, type: 'gem' });
@@ -221,7 +219,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 const iconMap: any = { 'fa-square': '\uf0c8', 'fa-cat': '\uf6be', 'fa-dragon': '\uf6d5', 'fa-crown': '\uf521', 'fa-running': '\uf70c', 'fa-bolt': '\uf0e7', 'fa-robot': '\uf544', 'fa-sun': '\uf185', 'fa-spider': '\uf717', 'fa-user-secret': '\uf21b', 'fa-skull': '\uf54c', 'fa-snowman': '\uf7d0', 'fa-sleigh': '\uf7cc', 'fa-tree': '\uf1bb', 'fa-gift': '\uf06b', 'fa-candy-cane': '\uf786', 'fa-crosshairs': '\uf05b' };
                 let iconChar = iconMap[skin.icon] || '\uf0c8';
                 
-                ctx.font = '900 52px "Font Awesome 6 Free"'; // ICONA ENORME
+                ctx.font = '900 52px "Font Awesome 6 Free"';
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(iconChar, 0, 0);
                 ctx.strokeStyle = 'white'; ctx.lineWidth = 3; ctx.strokeText(iconChar, 0, 0);
@@ -231,7 +229,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                     ctx.rotate(0.1);
                     ctx.fillStyle = '#444'; ctx.fillRect(10, -10, 70, 24);
                     ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(10, -10, 70, 24);
-                    // Dettagli bazooka...
                     if (shootCooldown.current > 0) {
                         ctx.fillStyle = '#ff6600'; ctx.beginPath(); ctx.arc(85, 0, 10, 0, Math.PI * 2); ctx.fill();
                     }
@@ -287,12 +284,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             }
 
             const px = canvas.width > 600 ? 220 : 120;
-            
-            // --- EFFETTI GLITCH MAPPA ---
+            const bossScreenX = Math.max(px + 400, canvas.width - 280); // Posizione Boss
+
             let shakeX = 0;
             let shakeY = 0;
-            
-            // Se la skin è glitchata, trema tutto e cambia colore
             if (isGlitchedSkin) {
                 if (Math.random() > 0.7) {
                     shakeX = (Math.random() - 0.5) * 15;
@@ -301,11 +296,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             }
 
             ctx.save();
-            ctx.translate(shakeX, shakeY); // Applica il tremore a tutto
+            ctx.translate(shakeX, shakeY);
 
             // BACKGROUND
             if (isGlitchedSkin) {
-                 // Sfondo impazzito per Admin Glitch e Error 666
                  ctx.fillStyle = Math.random() > 0.9 ? '#1a0000' : (Math.random() > 0.9 ? '#001a00' : '#000000');
                  if (Math.random() > 0.95) ctx.filter = 'invert(1)';
                  else ctx.filter = 'none';
@@ -313,8 +307,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 ctx.fillStyle = '#08081a';
                 ctx.filter = 'none';
             }
-            
-            ctx.fillRect(-shakeX, -shakeY, canvas.width, canvas.height); // Pulisci con offset inverso per coprire tutto
+            ctx.fillRect(-shakeX, -shakeY, canvas.width, canvas.height);
 
             // TERRENO
             ctx.fillStyle = isGlitchedSkin ? (Math.random() > 0.8 ? '#222' : '#000') : '#05050f';
@@ -323,14 +316,96 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             ctx.lineWidth = 5; 
             ctx.strokeRect(0, groundY, canvas.width, 4);
 
-            // Objects
+            // BOSS LOGIC
+            if (isBossLevel && bossHP > 0 && progress > 5) {
+                world.current.bossTimer++;
+                
+                // Movimento Boss
+                world.current.bossY = 250 + Math.sin(world.current.bossTimer * 0.05) * 150;
+                
+                // Sparo Boss
+                if (world.current.bossTimer % 100 === 0) {
+                    world.current.projectiles.push({
+                        x: world.current.x + bossScreenX,
+                        y: world.current.bossY,
+                        width: 50,
+                        height: 20,
+                        speed: -15,
+                        type: 'laser'
+                    });
+                }
+
+                // Disegno Boss
+                ctx.fillStyle = world.current.bossColor;
+                ctx.fillRect(bossScreenX, world.current.bossY - 60, 120, 120);
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = 4; ctx.strokeRect(bossScreenX, world.current.bossY - 60, 120, 120);
+                
+                // Faccia Boss
+                ctx.fillStyle = '#fff';
+                ctx.beginPath(); ctx.arc(bossScreenX + 30, world.current.bossY - 20, 15, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(bossScreenX + 90, world.current.bossY - 20, 15, 0, Math.PI * 2); ctx.fill();
+                ctx.fillStyle = '#f00'; ctx.beginPath(); ctx.arc(bossScreenX + 30, world.current.bossY - 20, 5, 0, Math.PI * 2); ctx.fill();
+                ctx.beginPath(); ctx.arc(bossScreenX + 90, world.current.bossY - 20, 5, 0, Math.PI * 2); ctx.fill();
+
+                // Barra Vita Boss
+                ctx.fillStyle = '#333'; ctx.fillRect(bossScreenX, world.current.bossY - 90, 120, 15);
+                ctx.fillStyle = '#f00'; ctx.fillRect(bossScreenX, world.current.bossY - 90, 120 * (bossHP / 100), 15);
+            }
+
+            // PROIETTILI PLAYER (Aggiornamento e Rendering)
+            const pProjs = world.current.playerProjectiles;
+            for (let i = pProjs.length - 1; i >= 0; i--) {
+                const p = pProjs[i];
+                p.x += p.speed - speed; // Movimento relativo al mondo
+                
+                // Rimozione fuori schermo
+                if (p.x > canvas.width + 100) { pProjs.splice(i, 1); continue; }
+
+                // Disegno
+                if (p.type === 'rocket') {
+                    ctx.fillStyle = '#ff4500'; ctx.fillRect(p.x, p.y, p.width, p.height);
+                    ctx.fillStyle = '#ffcc00'; ctx.beginPath(); ctx.arc(p.x, p.y + p.height/2, 10, 0, Math.PI*2); ctx.fill();
+                } else {
+                    ctx.fillStyle = '#ffffff'; ctx.fillRect(p.x, p.y, p.width, p.height);
+                    ctx.strokeStyle = 'red'; ctx.lineWidth = 2; ctx.strokeRect(p.x, p.y, p.width, p.height);
+                }
+
+                // Collisione con Ostacoli (Distruzione ostacoli)
+                const obstacles = world.current.obstacles;
+                for (let j = obstacles.length - 1; j >= 0; j--) {
+                    const o = obstacles[j];
+                    const ox = o.x - world.current.x;
+                    if (
+                        p.x < ox + o.width &&
+                        p.x + p.width > ox &&
+                        p.y < groundY - o.height + o.height &&
+                        p.y + p.height > groundY - o.height
+                    ) {
+                        obstacles.splice(j, 1);
+                        pProjs.splice(i, 1);
+                        effects.current.push({ x: ox, y: groundY - 50, text: 'BOOM!', life: 30, color: '#ffff00' });
+                        break;
+                    }
+                }
+                
+                // Collisione con Boss
+                if (isBossLevel && bossHP > 0) {
+                     if (p.x + p.width > bossScreenX && p.x < bossScreenX + 120 && p.y + p.height > world.current.bossY - 60 && p.y < world.current.bossY + 60) {
+                         setBossHP(h => Math.max(0, h - (p.type === 'rocket' ? 10 : 2)));
+                         pProjs.splice(i, 1);
+                         effects.current.push({ x: bossScreenX + 50, y: world.current.bossY, text: '-HP', life: 20, color: '#ff0000' });
+                     }
+                }
+            }
+
+            // OSTACOLI & COLLISIONI PLAYER
             const obstacles = world.current.obstacles;
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const o = obstacles[i];
                 const ox = o.x - world.current.x;
-                if (ox < px - 200 || ox > px + 600) continue; // Rendering optimization
                 
-                // Hitbox con margini per il cubo più grande
+                if (ox < px - 200 || ox > px + 600) continue; 
+                
                 if (!isGodMode && 
                     px + 10 < ox + o.width - 10 && 
                     px + player.current.width - 10 > ox + 10 && 
@@ -357,9 +432,37 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 }
             }
 
+            // PROIETTILI NEMICI
+            const projs = world.current.projectiles;
+            for (let i = projs.length - 1; i >= 0; i--) {
+                const p = projs[i];
+                p.x += p.speed; 
+                
+                if (p.x < -100) { projs.splice(i, 1); continue; }
+
+                ctx.fillStyle = '#ff00ff';
+                ctx.fillRect(p.x, p.y, p.width, p.height);
+                
+                // Collisione Player
+                if (!isGodMode && 
+                    px + 10 < p.x + p.width && 
+                    px + player.current.width - 10 > p.x && 
+                    player.current.y + 10 < p.y + p.height && 
+                    player.current.y + player.current.height - 10 > p.y) {
+                    setGameStatus('lost');
+                }
+            }
+            
+            // Draw Effects
+            effects.current.forEach(e => {
+                ctx.fillStyle = e.color;
+                ctx.font = 'bold 20px Arial';
+                ctx.fillText(e.text, e.x, e.y);
+            });
+
             drawPlayer(px, player.current.y);
             
-            ctx.restore(); // Rimuovi trasformazioni glitch
+            ctx.restore();
             animationFrameId = requestAnimationFrame(render);
         };
 
@@ -383,7 +486,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 </div>
             )}
 
-            {/* PULSANTE ADMIN: Posizionato strategicamente per essere visibile in Landscape Mobile */}
             {hasAdminAccess && (
                 <button 
                     onClick={() => setShowAdminPanel(true)} 
@@ -397,16 +499,15 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 <AdminPanel onClose={() => setShowAdminPanel(false)} onInstantWin={() => { setGameStatus('won'); setShowAdminPanel(false); }} onToggleGodMode={setIsGodMode} isGodMode={isGodMode} onToggleFly={setAdminFly} isFlyMode={adminFly} onSetSpeed={setAdminSpeed} currentSpeed={adminSpeed} restrictedView={isAdminGlitch} />
             )}
             
-            {/* HUD PIÙ GRANDE */}
             <div className="absolute top-4 left-4 text-white z-10 bg-black/60 backdrop-blur-lg px-6 py-3 rounded-[2rem] border border-white/20 shadow-xl">
                 <div className={`text-xl md:text-3xl font-black italic tracking-tighter ${isError666 ? 'text-red-600' : ''}`}>{username}</div>
             </div>
             
-            <div className="absolute top-4 right-4 z-10">
+            <div className="absolute top-4 right-4 z-10 flex flex-col items-end">
                 <div className={`text-white text-4xl md:text-6xl font-black italic drop-shadow-2xl ${isError666 ? 'text-red-600' : ''}`}>{Math.floor(progress)}%</div>
+                {isBossLevel && <div className="text-red-500 font-black text-xs uppercase bg-black/50 px-2 rounded mt-1">BOSS HP: {Math.ceil(bossHP)}%</div>}
             </div>
 
-            {/* Pulsante Spara */}
             {showShootButton && gameStatus === 'playing' && (
                 <button onClick={handleShoot} className={`fixed bottom-6 right-6 z-50 w-24 h-24 md:w-36 md:h-36 rounded-full border-4 border-white shadow-[0_0_40px_rgba(239,68,68,0.5)] flex flex-col items-center justify-center active:scale-90 transition-all ${canBazookaShoot ? 'bg-gradient-to-br from-orange-600 to-red-700 border-yellow-400' : 'bg-red-600'}`}>
                     <i className={`fas ${canBazookaShoot ? 'fa-rocket' : 'fa-gift'} text-4xl md:text-6xl text-white drop-shadow-md`}></i>
@@ -414,7 +515,6 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 </button>
             )}
 
-            {/* Schermata Game Over / Vittoria Ingrandita */}
             {gameStatus !== 'playing' && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/95 p-6 backdrop-blur-xl">
                     <div className="bg-gray-900 border-4 border-white/20 rounded-[3rem] p-8 md:p-12 flex flex-col items-center text-center max-w-lg w-full shadow-[0_0_100px_rgba(255,255,255,0.1)]">
