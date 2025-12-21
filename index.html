@@ -45,7 +45,6 @@
             font-family: 'Press Start 2P', cursive;
         }
 
-        /* Effetti Testo */
         .rainbow-text {
             background: linear-gradient(to right, #ff0000, #ff7f00, #ffff00, #00ff00, #0000ff, #4b0082, #8f00ff, #ff0000);
             -webkit-background-clip: text;
@@ -75,12 +74,12 @@
             to { background-position: 100px 500px; }
         }
 
-        /* Fix per schermi bassi (Orizzontale Mobile) */
-        @media (max-height: 480px) {
-            .landscape-row { flex-direction: row !important; gap: 2rem !important; }
-            .landscape-logo { font-size: 1.8rem !important; }
-            .landscape-hide { display: none !important; }
-            .landscape-shrink { transform: scale(0.75); }
+        /* Fix per layout orizzontale: invece di rimpicciolire, distanziamo */
+        @media (max-height: 500px) {
+            .landscape-flex-row { flex-direction: row !important; align-items: center !important; justify-content: space-around !important; width: 100%; }
+            .landscape-logo-size { font-size: 2.2rem !important; margin-bottom: 0 !important; }
+            .landscape-btn-size { width: 140px !important; height: 140px !important; font-size: 4rem !important; }
+            .landscape-hide-text { display: none !important; }
         }
     </style>
 <script type="importmap">
