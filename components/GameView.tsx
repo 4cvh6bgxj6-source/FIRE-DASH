@@ -57,9 +57,10 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
     const shootCooldown = useRef(0); 
     const effects = useRef<Effect[]>([]);
 
-    // PLAYER PIÙ GRANDE: 52x52 invece di 40x40
+    // PLAYER ANCORA PIÙ GRANDE: 60x60
+    const PLAYER_SIZE = 60;
     const player = useRef({
-        y: 300, dy: 0, width: 52, height: 52, rotation: 0, isGrounded: false,
+        y: 300, dy: 0, width: PLAYER_SIZE, height: PLAYER_SIZE, rotation: 0, isGrounded: false,
     });
     
     const world = useRef({
@@ -76,6 +77,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
 
     const isError666 = skin.id === 's666'; 
     const isAdminGlitch = skin.id === 's8';
+    const isGlitchedSkin = isError666 || isAdminGlitch; // Flag unificato per effetti mappa
     const isOmino = skin.id === 's-man';
     const canFlyActive = skin.canFly || adminFly;
     
@@ -120,19 +122,19 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
         player.current.dy = 0;
         player.current.rotation = 0;
         
-        const spacing = 480 / effectiveMultiplier; // Aumentato spaziatura per compensare dimensione
+        const spacing = 520 / effectiveMultiplier; 
         
         if (!level.isBossBattle) {
             for (let i = 1200; i < levelLength - 1000; i += spacing + (Math.random() * 250)) {
                 const rand = Math.random();
-                // OSTACOLI PIÙ GRANDI
-                if (rand < 0.45) obstacles.push({ x: i, width: 52, height: 52, type: 'spike' });
-                else if (rand < 0.75) obstacles.push({ x: i, width: 75, height: 75, type: 'block' });
-                else obstacles.push({ x: i, width: 38, height: 38, type: 'gem' });
+                // OSTACOLI PROPORZIONATI (60px)
+                if (rand < 0.45) obstacles.push({ x: i, width: PLAYER_SIZE, height: PLAYER_SIZE, type: 'spike' });
+                else if (rand < 0.75) obstacles.push({ x: i, width: 80, height: 80, type: 'block' });
+                else obstacles.push({ x: i, width: 45, height: 45, type: 'gem' });
             }
         } else {
             for (let i = 1200; i < levelLength - 1000; i += 800) {
-                obstacles.push({ x: i, width: 38, height: 38, type: 'gem' });
+                obstacles.push({ x: i, width: 45, height: 45, type: 'gem' });
             }
         }
 
@@ -155,11 +157,11 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
         let projType: 'gift' | 'rocket' = canBazookaShoot ? 'rocket' : 'gift';
         
         world.current.playerProjectiles.push({
-            x: world.current.x + 150 + 60, 
-            y: player.current.y + 10,
-            width: projType === 'rocket' ? 80 : 35,
-            height: projType === 'rocket' ? 25 : 35,
-            speed: currentWorldSpeed + (projType === 'rocket' ? 40 : 22),
+            x: world.current.x + 150 + 70, 
+            y: player.current.y + 15,
+            width: projType === 'rocket' ? 90 : 40,
+            height: projType === 'rocket' ? 30 : 40,
+            speed: currentWorldSpeed + (projType === 'rocket' ? 45 : 25),
             rotation: 0,
             active: true,
             type: projType
@@ -198,9 +200,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             ctx.translate(pX + player.current.width/2, pY + player.current.height/2);
             
             if (isOmino) {
-                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 4; ctx.lineCap = 'round';
-                ctx.beginPath(); ctx.arc(0, -20, 9, 0, Math.PI * 2); ctx.stroke();
-                ctx.beginPath(); ctx.moveTo(0, -12); ctx.lineTo(0, 8); ctx.stroke();
+                ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+                ctx.beginPath(); ctx.arc(0, -22, 12, 0, Math.PI * 2); ctx.stroke();
+                ctx.beginPath(); ctx.moveTo(0, -10); ctx.lineTo(0, 15); ctx.stroke();
                 ctx.stroke();
             } else {
                 if (canFlyActive) {
@@ -209,9 +211,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                     ctx.rotate(player.current.rotation);
                 }
                 
-                if (isError666) {
-                    ctx.shadowBlur = 20; ctx.shadowColor = 'red';
-                    ctx.fillStyle = Math.random() > 0.85 ? 'white' : '#ff0000';
+                if (isGlitchedSkin) {
+                    ctx.shadowBlur = 25; ctx.shadowColor = Math.random() > 0.5 ? 'red' : 'green';
+                    ctx.fillStyle = Math.random() > 0.85 ? 'white' : skin.color;
                 } else {
                     ctx.fillStyle = skin.color;
                 }
@@ -219,20 +221,19 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 const iconMap: any = { 'fa-square': '\uf0c8', 'fa-cat': '\uf6be', 'fa-dragon': '\uf6d5', 'fa-crown': '\uf521', 'fa-running': '\uf70c', 'fa-bolt': '\uf0e7', 'fa-robot': '\uf544', 'fa-sun': '\uf185', 'fa-spider': '\uf717', 'fa-user-secret': '\uf21b', 'fa-skull': '\uf54c', 'fa-snowman': '\uf7d0', 'fa-sleigh': '\uf7cc', 'fa-tree': '\uf1bb', 'fa-gift': '\uf06b', 'fa-candy-cane': '\uf786', 'fa-crosshairs': '\uf05b' };
                 let iconChar = iconMap[skin.icon] || '\uf0c8';
                 
-                ctx.font = '900 44px "Font Awesome 6 Free"'; // ICONA PIÙ GRANDE
+                ctx.font = '900 52px "Font Awesome 6 Free"'; // ICONA ENORME
                 ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
                 ctx.fillText(iconChar, 0, 0);
-                ctx.strokeStyle = 'white'; ctx.lineWidth = 2.5; ctx.strokeText(iconChar, 0, 0);
+                ctx.strokeStyle = 'white'; ctx.lineWidth = 3; ctx.strokeText(iconChar, 0, 0);
 
                 if (isBazookaEquipped) {
                     ctx.save();
                     ctx.rotate(0.1);
-                    ctx.fillStyle = '#444'; ctx.fillRect(10, -10, 60, 20);
-                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(10, -10, 60, 20);
-                    ctx.fillStyle = '#111'; ctx.fillRect(15, 10, 8, 15);
-                    ctx.fillStyle = '#333'; ctx.fillRect(8, -12, 12, 24); ctx.fillRect(60, -14, 15, 28);
+                    ctx.fillStyle = '#444'; ctx.fillRect(10, -10, 70, 24);
+                    ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.strokeRect(10, -10, 70, 24);
+                    // Dettagli bazooka...
                     if (shootCooldown.current > 0) {
-                        ctx.fillStyle = '#ff6600'; ctx.beginPath(); ctx.arc(75, 0, 8, 0, Math.PI * 2); ctx.fill();
+                        ctx.fillStyle = '#ff6600'; ctx.beginPath(); ctx.arc(85, 0, 10, 0, Math.PI * 2); ctx.fill();
                     }
                     ctx.restore();
                 }
@@ -260,8 +261,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             if (canFlyActive) player.current.dy = Math.max(-13, Math.min(9, player.current.dy));
             player.current.y += player.current.dy;
 
-            // Ground un po' più alto su mobile per visibilità
-            const groundHeight = canvas.height < 500 ? 80 : 120;
+            const groundHeight = canvas.height < 500 ? 90 : 140;
             const groundY = canvas.height - groundHeight;
 
             if (player.current.y + player.current.height > groundY) {
@@ -286,56 +286,80 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 return;
             }
 
-            // Posizione X del giocatore su schermo
-            const px = canvas.width > 600 ? 200 : 100;
-            const bossScreenX = Math.max(px + 400, canvas.width - 280);
-            const bossScreenY = world.current.bossY;
-
-            // ... (logica proiettili simile a prima) ...
+            const px = canvas.width > 600 ? 220 : 120;
             
-            // World Collisions con Hitbox Adattata
+            // --- EFFETTI GLITCH MAPPA ---
+            let shakeX = 0;
+            let shakeY = 0;
+            
+            // Se la skin è glitchata, trema tutto e cambia colore
+            if (isGlitchedSkin) {
+                if (Math.random() > 0.7) {
+                    shakeX = (Math.random() - 0.5) * 15;
+                    shakeY = (Math.random() - 0.5) * 15;
+                }
+            }
+
+            ctx.save();
+            ctx.translate(shakeX, shakeY); // Applica il tremore a tutto
+
+            // BACKGROUND
+            if (isGlitchedSkin) {
+                 // Sfondo impazzito per Admin Glitch e Error 666
+                 ctx.fillStyle = Math.random() > 0.9 ? '#1a0000' : (Math.random() > 0.9 ? '#001a00' : '#000000');
+                 if (Math.random() > 0.95) ctx.filter = 'invert(1)';
+                 else ctx.filter = 'none';
+            } else {
+                ctx.fillStyle = '#08081a';
+                ctx.filter = 'none';
+            }
+            
+            ctx.fillRect(-shakeX, -shakeY, canvas.width, canvas.height); // Pulisci con offset inverso per coprire tutto
+
+            // TERRENO
+            ctx.fillStyle = isGlitchedSkin ? (Math.random() > 0.8 ? '#222' : '#000') : '#05050f';
+            ctx.fillRect(0, groundY, canvas.width, groundHeight);
+            ctx.strokeStyle = isGlitchedSkin ? (Math.random() > 0.8 ? '#0f0' : '#f00') : level.color;
+            ctx.lineWidth = 5; 
+            ctx.strokeRect(0, groundY, canvas.width, 4);
+
+            // Objects
             const obstacles = world.current.obstacles;
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const o = obstacles[i];
                 const ox = o.x - world.current.x;
-                if (ox < px - 150 || ox > px + 150) continue;
+                if (ox < px - 200 || ox > px + 600) continue; // Rendering optimization
                 
-                // Hitbox leggermente più permissiva (padding 8px)
+                // Hitbox con margini per il cubo più grande
                 if (!isGodMode && 
-                    px + 8 < ox + o.width - 8 && 
-                    px + player.current.width - 8 > ox + 8 && 
-                    player.current.y + 8 < groundY - o.height + o.height - 8 && 
-                    player.current.y + player.current.height - 8 > groundY - o.height + 8) {
+                    px + 10 < ox + o.width - 10 && 
+                    px + player.current.width - 10 > ox + 10 && 
+                    player.current.y + 10 < groundY - o.height + o.height - 10 && 
+                    player.current.y + player.current.height - 10 > groundY - o.height + 10) {
                     
                     if (o.type === 'gem') { obstacles.splice(i, 1); setGemsCollected(g => g + 5); } 
                     else setGameStatus('lost');
                 }
-            }
 
-            // RENDERING
-            ctx.fillStyle = isError666 ? (Math.random() > 0.9 ? '#300' : '#000') : '#08081a';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.fillStyle = isError666 ? '#000' : '#05050f'; ctx.fillRect(0, groundY, canvas.width, groundHeight);
-            ctx.strokeStyle = isError666 ? 'red' : level.color; ctx.lineWidth = 5; ctx.strokeRect(0, groundY, canvas.width, 4);
+                if (ox < -100 || ox > canvas.width + 100) continue;
 
-            obstacles.forEach(o => {
-                const ox = o.x - world.current.x;
-                if (ox < -100 || ox > canvas.width + 100) return;
                 if (o.type === 'spike') {
-                    ctx.fillStyle = isError666 ? '#100' : '#ff3333'; ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+o.width/2, groundY-o.height); ctx.lineTo(ox+o.width, groundY); ctx.fill();
+                    ctx.fillStyle = isGlitchedSkin ? '#fff' : '#ff3333'; 
+                    ctx.beginPath(); ctx.moveTo(ox, groundY); ctx.lineTo(ox+o.width/2, groundY-o.height); ctx.lineTo(ox+o.width, groundY); ctx.fill();
                     ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.stroke();
                 } else if (o.type === 'block') {
-                    ctx.fillStyle = isError666 ? '#000' : '#334466'; ctx.fillRect(ox, groundY-o.height, o.width, o.height);
+                    ctx.fillStyle = isGlitchedSkin ? '#333' : '#334466'; 
+                    ctx.fillRect(ox, groundY-o.height, o.width, o.height);
                     ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.strokeRect(ox, groundY-o.height, o.width, o.height);
                 } else if (o.type === 'gem') {
-                    ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(ox+o.width/2, groundY-60, 14, 0, Math.PI*2); ctx.fill();
+                    ctx.fillStyle = '#00ffff'; ctx.beginPath(); ctx.arc(ox+o.width/2, groundY-60, 18, 0, Math.PI*2); ctx.fill();
                     ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff'; ctx.stroke(); ctx.shadowBlur = 0;
                 }
-            });
-
-            // ... (Rendering Boss e Proiettili Player rimangono simili) ...
+            }
 
             drawPlayer(px, player.current.y);
+            
+            ctx.restore(); // Rimuovi trasformazioni glitch
             animationFrameId = requestAnimationFrame(render);
         };
 
@@ -359,8 +383,14 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 </div>
             )}
 
+            {/* PULSANTE ADMIN: Posizionato strategicamente per essere visibile in Landscape Mobile */}
             {hasAdminAccess && (
-                <button onClick={() => setShowAdminPanel(true)} className={`fixed top-24 left-6 z-50 bg-black/80 border w-14 h-14 rounded-full flex items-center justify-center text-xl ${isError666 ? 'border-red-600 text-red-600 animate-pulse' : 'border-green-500 text-green-500'}`}><i className="fas fa-terminal"></i></button>
+                <button 
+                    onClick={() => setShowAdminPanel(true)} 
+                    className={`fixed top-20 left-6 z-[60] bg-black/90 border-2 w-14 h-14 rounded-full flex items-center justify-center text-xl shadow-xl active:scale-95 ${isError666 ? 'border-red-600 text-red-600 animate-pulse' : 'border-green-500 text-green-500'}`}
+                >
+                    <i className="fas fa-terminal"></i>
+                </button>
             )}
 
             {showAdminPanel && (
@@ -376,9 +406,9 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 <div className={`text-white text-4xl md:text-6xl font-black italic drop-shadow-2xl ${isError666 ? 'text-red-600' : ''}`}>{Math.floor(progress)}%</div>
             </div>
 
-            {/* Pulsante Spara (se attivo) */}
+            {/* Pulsante Spara */}
             {showShootButton && gameStatus === 'playing' && (
-                <button onClick={handleShoot} className={`fixed bottom-8 right-8 z-50 w-24 h-24 md:w-36 md:h-36 rounded-full border-4 border-white shadow-[0_0_40px_rgba(239,68,68,0.5)] flex flex-col items-center justify-center active:scale-90 transition-all ${canBazookaShoot ? 'bg-gradient-to-br from-orange-600 to-red-700 border-yellow-400' : 'bg-red-600'}`}>
+                <button onClick={handleShoot} className={`fixed bottom-6 right-6 z-50 w-24 h-24 md:w-36 md:h-36 rounded-full border-4 border-white shadow-[0_0_40px_rgba(239,68,68,0.5)] flex flex-col items-center justify-center active:scale-90 transition-all ${canBazookaShoot ? 'bg-gradient-to-br from-orange-600 to-red-700 border-yellow-400' : 'bg-red-600'}`}>
                     <i className={`fas ${canBazookaShoot ? 'fa-rocket' : 'fa-gift'} text-4xl md:text-6xl text-white drop-shadow-md`}></i>
                     <span className="text-[10px] md:text-sm font-black text-white uppercase mt-1 tracking-widest drop-shadow-md">{canBazookaShoot ? 'BAZOOKA' : 'SPARA'}</span>
                 </button>
