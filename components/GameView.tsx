@@ -48,6 +48,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
     const [bossKilled, setBossKilled] = useState(false);
     const [showAdminPanel, setShowAdminPanel] = useState(false);
     const [bossHP, setBossHP] = useState(100); 
+    const [isPortrait, setIsPortrait] = useState(false);
     
     const [isGodMode, setIsGodMode] = useState(false);
     const [adminFly, setAdminFly] = useState(false); 
@@ -89,10 +90,19 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
     const hasAdminAccess = isError666 || isAdminGlitch;
 
     const getEffectiveMultiplier = () => {
-        if (level.id === '8' && isVip) return 2;
+        if (level.id === '14' && isVip) return 2;
         return level.speedMultiplier;
     };
     const effectiveMultiplier = getEffectiveMultiplier();
+
+    useEffect(() => {
+        const checkOrientation = () => {
+            setIsPortrait(window.innerHeight > window.innerWidth && window.innerWidth < 1024);
+        };
+        window.addEventListener('resize', checkOrientation);
+        checkOrientation();
+        return () => window.removeEventListener('resize', checkOrientation);
+    }, []);
 
     const initLevel = () => {
         const obstacles: typeof world.current.obstacles = [];
@@ -273,16 +283,15 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             }
 
             const px = 150; 
-            const bossScreenX = canvas.width - 280;
+            const bossScreenX = Math.max(px + 400, canvas.width - 280);
             const bossScreenY = world.current.bossY;
 
-            // Logica Proiettili Giocatore vs Boss - COLLISIONE CORRETTA E DANNO FISSIBILE
+            // Player Projectiles vs Boss
             world.current.playerProjectiles.forEach(p => {
                 if (!p.active) return;
                 p.x += p.speed;
                 const screenX = p.x - world.current.x;
 
-                // Hitbox del Boss: 220x220px circa
                 if (level.isBossBattle && !bossKilled && screenX + p.width > bossScreenX && screenX < bossScreenX + 220 && p.y + p.height > bossScreenY && p.y < bossScreenY + 220) {
                     p.active = false;
                     const dmg = p.type === 'rocket' ? 20 : 5;
@@ -295,8 +304,8 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             // AI del Boss
             if (level.isBossBattle && !bossKilled) {
                 world.current.bossY = (groundY - 280) + Math.sin(world.current.x * 0.02) * 160;
-                let fireRate = (bossHP < 30 ? 20 : 35) / effectiveMultiplier;
-                let projSpd = (bossHP < 30 ? 15 : 12) * effectiveMultiplier;
+                let fireRate = (bossHP < 30 ? 18 : 32) / effectiveMultiplier;
+                let projSpd = (bossHP < 30 ? 16 : 13) * effectiveMultiplier;
 
                 world.current.bossTimer++;
                 if (world.current.bossTimer > fireRate) { 
@@ -304,16 +313,16 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                     const isL = bossHP < 50 && Math.random() > 0.4;
                     world.current.projectiles.push({
                         x: world.current.x + canvas.width, 
-                        y: isL ? player.current.y + 10 : (Math.random() > 0.5 ? groundY - 60 : groundY - 160),
-                        width: isL ? 250 : 60,
-                        height: isL ? 30 : 60,
-                        speed: projSpd * (isL ? 2.6 : 1.6),
+                        y: isL ? player.current.y + 5 : (Math.random() > 0.5 ? groundY - 60 : groundY - 160),
+                        width: isL ? 300 : 60,
+                        height: isL ? 35 : 60,
+                        speed: projSpd * (isL ? 2.8 : 1.8),
                         type: isL ? 'laser' : 'normal'
                     });
                 }
             }
 
-            // Collisioni Ostacoli Base
+            // World Collisions
             const obstacles = world.current.obstacles;
             for (let i = obstacles.length - 1; i >= 0; i--) {
                 const o = obstacles[i];
@@ -325,21 +334,36 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 }
             }
 
-            // Collisioni Proiettili Boss vs Player (Logica Schivata 50% Boss Hunter)
+            // Boss Projs vs Player - LOGICA MIGLIORATA
             const projs = world.current.projectiles;
             for (let i = projs.length - 1; i >= 0; i--) {
                 const p = projs[i];
+                const prevX = p.x;
                 p.x -= p.speed; 
+                
                 const sProjX = p.x - world.current.x;
-                if (sProjX < -300) { projs.splice(i, 1); continue; }
+                const prevSProjX = prevX - world.current.x;
+                
+                if (sProjX < -400) { projs.splice(i, 1); continue; }
 
-                if (!isGodMode && px + 12 < sProjX + p.width - 12 && px + 28 > sProjX + 12 && player.current.y + 12 < p.y + p.height - 12 && player.current.y + 28 > p.y + 12) {
-                    // SCHIVATA BOSS HUNTER AL 50%
-                    if (isBossHunterSkin && p.type !== 'laser' && Math.random() < 0.5) { 
-                        effects.current.push({ x: px, y: player.current.y - 45, text: "MISS!", life: 55, color: '#00ffcc' });
-                        projs.splice(i, 1); 
-                    } else {
-                        setGameStatus('lost');
+                if (!isGodMode) {
+                    // Controllo collisione robusto: verifica se il proiettile ha intersecato la X del giocatore in questo frame
+                    const playerXStart = px + 5;
+                    const playerXEnd = px + 35;
+                    const projXStart = sProjX;
+                    const projXEnd = prevSProjX + p.width;
+
+                    const horizontalOverlap = projXStart < playerXEnd && projXEnd > playerXStart;
+                    const verticalOverlap = player.current.y + 5 < p.y + p.height - 5 && player.current.y + 35 > p.y + 5;
+
+                    if (horizontalOverlap && verticalOverlap) {
+                        // SCHIVATA AGGIORNATA AL 80% (Solo per colpi normali)
+                        if (isBossHunterSkin && p.type !== 'laser' && Math.random() < 0.8) { 
+                            effects.current.push({ x: px, y: player.current.y - 45, text: "MISS!", life: 55, color: '#00ffcc' });
+                            projs.splice(i, 1); 
+                        } else {
+                            setGameStatus('lost');
+                        }
                     }
                 }
             }
@@ -347,6 +371,38 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             // --- DISEGNO ---
             ctx.fillStyle = isError666 ? (Math.random() > 0.9 ? '#300' : '#000') : '#08081a';
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            if (level.isBossBattle && !bossKilled) {
+                let bgMsg = "HAHA NABBO!";
+                let bgColor = 'white';
+                if (bossHP < 25) { bgMsg = "È L'ORA DELLA TUA FINE!"; bgColor = '#ff0000'; }
+                else if (bossHP < 40) { bgMsg = "ORA TI UCCIDO!"; bgColor = 'white'; }
+                else if (bossHP < 60) { bgMsg = "TI HO SOTTOVALUTATO"; bgColor = 'white'; }
+                else if (bossHP < 80) { bgMsg = "NON SAI GIOCARE!"; bgColor = 'white'; }
+
+                ctx.save();
+                ctx.globalAlpha = 0.12; 
+                ctx.fillStyle = bgColor;
+                const fontSize = Math.min(canvas.width / 10, 100);
+                ctx.font = `900 ${fontSize}px Orbitron`;
+                ctx.textAlign = 'center';
+                
+                const pulse = 1 + Math.sin(world.current.x * 0.01) * 0.1;
+                let tx = canvas.width / 2;
+                let ty = canvas.height / 2.5;
+
+                if (bossHP < 25) { 
+                    tx += Math.random() * 10 - 5;
+                    ty += Math.random() * 10 - 5;
+                    ctx.globalAlpha = 0.25; 
+                }
+
+                ctx.translate(tx, ty);
+                ctx.scale(pulse, pulse);
+                ctx.fillText(bgMsg, 0, 0);
+                ctx.restore();
+            }
+
             ctx.fillStyle = isError666 ? '#000' : '#05050f'; ctx.fillRect(0, groundY, canvas.width, 100);
             ctx.strokeStyle = isError666 ? 'red' : level.color; ctx.lineWidth = 4; ctx.strokeRect(0, groundY, canvas.width, 2);
 
@@ -372,46 +428,37 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 ctx.strokeStyle = 'white'; ctx.lineWidth = 2; ctx.strokeRect(sX, p.y, p.width, p.height);
             });
 
-            // EVOLUZIONE TROLLFACE DEMONICA
             if (level.isBossBattle && !bossKilled) {
                 ctx.save();
                 const bX = bossScreenX + 110;
                 const bY = bossScreenY + 110;
                 ctx.translate(bX, bY);
                 
-                // Tremore progressivo in base agli HP
                 const shakeIntensity = bossHP < 25 ? 14 : (bossHP < 50 ? 7 : 0);
                 if (shakeIntensity > 0) ctx.translate(Math.random()*shakeIntensity - shakeIntensity/2, Math.random()*shakeIntensity - shakeIntensity/2);
 
-                // Colore pelle basato sugli HP
                 let skinColor = 'white';
-                if (bossHP < 25) skinColor = '#1a0000'; // Demon: Near Black/Dark Red
-                else if (bossHP < 50) skinColor = '#444'; // Grey
-                else if (bossHP < 75) skinColor = '#ccc'; // Light Grey
+                if (bossHP < 25) skinColor = '#1a0000';
+                else if (bossHP < 50) skinColor = '#444';
+                else if (bossHP < 75) skinColor = '#ccc';
 
-                // Aura infernale
                 if (bossHP < 50) {
                     ctx.shadowBlur = bossHP < 25 ? 60 : 30;
                     ctx.shadowColor = 'red';
                 }
 
-                // Corna Demoniache (HP < 50)
                 if (bossHP < 50) {
                     ctx.fillStyle = '#200';
                     ctx.beginPath();
-                    // Sinistra
                     ctx.moveTo(-75, -55); ctx.quadraticCurveTo(-110, -125, -135, -95); ctx.quadraticCurveTo(-100, -85, -65, -35);
                     ctx.fill();
-                    // Destra
                     ctx.moveTo(75, -55); ctx.quadraticCurveTo(110, -125, 135, -95); ctx.quadraticCurveTo(100, -85, 65, -35);
                     ctx.fill();
                 }
 
-                // Testa Boss
                 ctx.beginPath(); ctx.fillStyle = skinColor; ctx.strokeStyle = bossHP < 25 ? '#ff0000' : 'black'; ctx.lineWidth = 6;
                 ctx.ellipse(0, 0, 110, 95, 0.1, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
                 
-                // Occhi Demoniaci
                 const eyeColor = bossHP < 75 ? 'red' : 'black';
                 ctx.beginPath(); ctx.arc(-45, -25, 18, 0, Math.PI * 2); ctx.stroke();
                 ctx.beginPath(); ctx.arc(45, -25, 18, 0, Math.PI * 2); ctx.stroke();
@@ -420,7 +467,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                 ctx.beginPath(); ctx.arc(-40, -20, 8, 0, Math.PI * 2); ctx.fill();
                 ctx.beginPath(); ctx.arc(50, -20, 8, 0, Math.PI * 2); ctx.fill();
                 
-                if (bossHP < 25) { // Glow degli occhi laser
+                if (bossHP < 25) { 
                     ctx.shadowBlur = 20; ctx.shadowColor = 'red';
                     ctx.fillStyle = 'red';
                     ctx.beginPath(); ctx.arc(-40, -20, 5, 0, Math.PI * 2); ctx.fill();
@@ -428,28 +475,26 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
                     ctx.shadowBlur = 0;
                 }
 
-                // Sorriso (diventa rosso e malvagio)
                 ctx.beginPath(); 
                 ctx.arc(0, 25, 65, 0.1, Math.PI - 0.1, false); 
                 ctx.strokeStyle = bossHP < 25 ? 'red' : 'black';
                 ctx.stroke();
 
-                // Rughe iconiche
                 ctx.beginPath(); ctx.moveTo(-60, 25); ctx.lineTo(-80, 5); ctx.stroke();
                 ctx.beginPath(); ctx.moveTo(60, 25); ctx.lineTo(80, 5); ctx.stroke();
 
-                // Messaggio del Boss
-                ctx.fillStyle = bossHP < 25 ? 'red' : (bossHP < 50 ? 'white' : 'black');
-                ctx.font = '900 26px Orbitron'; ctx.textAlign = 'center';
-                let msg = "PROBLEM?";
-                if (bossHP < 25) msg = "DIE MORTAL!";
-                else if (bossHP < 50) msg = "INSANE RUN?";
-                else if (bossHP < 75) msg = "U MAD?";
-                
-                ctx.fillText(msg, 0, -125);
+                ctx.font = '900 24px Orbitron'; ctx.textAlign = 'center';
+                let msg = "HAHA NABBO!";
+                let msgColor = 'black';
+                if (bossHP < 25) { msg = "DIE!"; msgColor = '#ff0000'; }
+                else if (bossHP < 40) { msg = "ORA TI UCCIDO!"; msgColor = 'white'; }
+                else if (bossHP < 60) { msg = "TI HO SOTTOVALUTATO"; msgColor = 'white'; }
+                else if (bossHP < 80) { msg = "NOOB!"; msgColor = 'black'; }
+
+                ctx.fillStyle = msgColor;
+                ctx.fillText(msg, 0, -135);
                 ctx.restore();
 
-                // Proiettili del Boss
                 projs.forEach(p => {
                     ctx.shadowBlur = 20; ctx.shadowColor = p.type === 'laser' ? 'red' : '#ffff00';
                     ctx.fillStyle = p.type === 'laser' ? '#ff0000' : '#ffff00';
@@ -478,6 +523,16 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
 
     return (
         <div className={`h-full w-full relative bg-black overflow-hidden ${isError666 ? 'glitch-screen' : ''}`}>
+            {isPortrait && (
+                <div className="fixed inset-0 z-[1000] bg-black flex flex-col items-center justify-center p-8 text-center">
+                    <div className="w-32 h-32 mb-8 animate-bounce">
+                        <i className="fas fa-mobile-screen text-7xl text-white rotate-90"></i>
+                    </div>
+                    <h2 className="text-3xl font-black text-white uppercase italic tracking-tighter mb-4">RUOTA IL TELEFONO</h2>
+                    <p className="text-blue-400 font-bold uppercase tracking-widest text-sm">Gioca in modalità orizzontale per evitare bug e avere una visuale migliore!</p>
+                </div>
+            )}
+
             {hasAdminAccess && (
                 <button onClick={() => setShowAdminPanel(true)} className={`fixed top-20 left-6 z-50 bg-black/80 border w-12 h-12 rounded-full flex items-center justify-center ${isError666 ? 'border-red-600 text-red-600 animate-pulse' : 'border-green-500 text-green-500'}`}><i className="fas fa-terminal"></i></button>
             )}
@@ -489,7 +544,7 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             <div className="absolute top-6 left-6 text-white z-10 bg-black/50 backdrop-blur-lg p-4 rounded-3xl border border-white/20 shadow-2xl">
                 <div className="text-[10px] uppercase font-bold opacity-60 mb-1 tracking-widest">Utente Attivo</div>
                 <div className={`text-2xl font-black italic tracking-tighter ${isError666 ? 'text-red-600' : ''}`}>{username}</div>
-                {isBossHunterSkin && <div className="text-[10px] text-emerald-400 font-black mt-1">SCHIVATA: 50%</div>}
+                {isBossHunterSkin && <div className="text-[10px] text-emerald-400 font-black mt-1">SCHIVATA: 80%</div>}
             </div>
             
             <div className="absolute top-6 right-6 z-10 text-right flex flex-col items-end">
@@ -499,12 +554,12 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             {isBossLevel && !bossKilled && gameStatus === 'playing' && (
                 <div className="absolute top-8 left-1/2 -translate-x-1/2 w-[85%] max-w-2xl z-20 flex flex-col items-center">
                     <div className="flex items-center justify-between w-full mb-2 px-4">
-                        <span className={`font-black italic uppercase text-sm tracking-[0.5em] animate-pulse drop-shadow-lg ${bossHP < 25 ? 'text-red-600' : 'text-white'}`}>
+                        <span className={`font-black italic uppercase text-xs md:text-sm tracking-[0.2em] md:tracking-[0.5em] animate-pulse drop-shadow-lg ${bossHP < 25 ? 'text-red-600' : 'text-white'}`}>
                             {bossHP < 25 ? 'BOSS: INFERNAL TROLLFACE' : 'BOSS: TROLLFACE LORD'}
                         </span>
-                        <span className="text-white font-black text-sm bg-red-600 px-3 py-1 rounded-full shadow-lg">{Math.ceil(bossHP)}%</span>
+                        <span className="text-white font-black text-xs md:text-sm bg-red-600 px-3 py-1 rounded-full shadow-lg">{Math.ceil(bossHP)}%</span>
                     </div>
-                    <div className={`w-full bg-gray-950 h-8 rounded-full overflow-hidden border-4 border-white/30 shadow-[0_0_40px_rgba(255,0,0,0.6)] relative transition-all duration-700 ${bossHP < 25 ? 'scale-110' : ''}`}>
+                    <div className={`w-full bg-gray-950 h-6 md:h-8 rounded-full overflow-hidden border-2 md:border-4 border-white/30 shadow-[0_0_40px_rgba(255,0,0,0.6)] relative transition-all duration-700 ${bossHP < 25 ? 'scale-110' : ''}`}>
                         <div 
                             className={`h-full transition-all duration-300 relative shadow-[inset_0_0_15px_rgba(255,255,255,0.4)] ${bossHP < 25 ? 'bg-gradient-to-r from-red-950 via-red-600 to-red-900' : 'bg-gradient-to-r from-red-700 via-red-500 to-red-400'}`} 
                             style={{width: `${bossHP}%`}}
@@ -516,31 +571,31 @@ const GameView: React.FC<Props> = ({ level, skin, username, isVip, onEnd }) => {
             )}
 
             {showShootButton && gameStatus === 'playing' && (
-                <button onClick={handleShoot} className={`fixed bottom-12 right-12 z-50 w-32 h-32 rounded-full border-4 border-white shadow-[0_0_40px_rgba(239,68,68,0.5)] flex flex-col items-center justify-center active:scale-90 transition-all ${canBazookaShoot ? 'bg-gradient-to-br from-orange-600 to-red-700 border-yellow-400' : 'bg-red-600'}`}>
-                    <i className={`fas ${canBazookaShoot ? 'fa-rocket' : 'fa-gift'} text-5xl text-white drop-shadow-md`}></i>
-                    <span className="text-[14px] font-black text-white uppercase mt-2 tracking-widest drop-shadow-md">{canBazookaShoot ? 'BAZOOKA' : 'FIRE'}</span>
-                    {canBazookaShoot && <div className="absolute -top-3 -left-3 bg-yellow-400 text-black text-[10px] font-black px-3 py-1.5 rounded-full border-2 border-black rotate-[-15deg] shadow-xl">ULTIMATE</div>}
+                <button onClick={handleShoot} className={`fixed bottom-6 right-6 md:bottom-12 md:right-12 z-50 w-24 h-24 md:w-32 md:h-32 rounded-full border-4 border-white shadow-[0_0_40px_rgba(239,68,68,0.5)] flex flex-col items-center justify-center active:scale-90 transition-all ${canBazookaShoot ? 'bg-gradient-to-br from-orange-600 to-red-700 border-yellow-400' : 'bg-red-600'}`}>
+                    <i className={`fas ${canBazookaShoot ? 'fa-rocket' : 'fa-gift'} text-3xl md:text-5xl text-white drop-shadow-md`}></i>
+                    <span className="text-[10px] md:text-[14px] font-black text-white uppercase mt-1 md:mt-2 tracking-widest drop-shadow-md">{canBazookaShoot ? 'BAZOOKA' : 'FIRE'}</span>
+                    {canBazookaShoot && <div className="absolute -top-2 -left-2 bg-yellow-400 text-black text-[8px] md:text-[10px] font-black px-2 md:px-3 py-1 md:py-1.5 rounded-full border-2 border-black rotate-[-15deg] shadow-xl">ULTIMATE</div>}
                 </button>
             )}
 
             {gameStatus !== 'playing' && (
                 <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/98 p-6 backdrop-blur-xl">
                     {gameStatus === 'won' && (
-                        <div className="bg-gray-900 border-4 border-white/20 rounded-[5rem] p-12 flex flex-col items-center text-center max-w-md w-full shadow-[0_0_100px_rgba(34,197,94,0.3)] animate-in zoom-in-95 duration-500">
-                            <i className="fas fa-trophy text-8xl text-yellow-400 mb-8 drop-shadow-[0_0_40px_rgba(250,204,21,0.6)] animate-bounce"></i>
-                            <h2 className="text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-6 uppercase tracking-tighter">
+                        <div className="bg-gray-900 border-4 border-white/20 rounded-[3rem] md:rounded-[5rem] p-8 md:p-12 flex flex-col items-center text-center max-w-md w-full shadow-[0_0_100px_rgba(34,197,94,0.3)] animate-in zoom-in-95 duration-500">
+                            <i className="fas fa-trophy text-6xl md:text-8xl text-yellow-400 mb-6 md:mb-8 drop-shadow-[0_0_40px_rgba(250,204,21,0.6)] animate-bounce"></i>
+                            <h2 className="text-3xl md:text-5xl font-black italic text-transparent bg-clip-text bg-gradient-to-b from-yellow-300 to-yellow-600 mb-4 md:mb-6 uppercase tracking-tighter">
                                 MISSION WON!
                             </h2>
-                            <div className="text-6xl font-black text-white mb-10">+{gemsCollected} <span className="text-2xl text-blue-400">GEMS</span></div>
-                            <button onClick={() => onEnd(true, gemsCollected)} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-6 rounded-3xl uppercase tracking-[0.3em] border-b-8 border-blue-900 shadow-2xl active:scale-95 transition-all text-xl">CONTINUA</button>
+                            <div className="text-4xl md:text-6xl font-black text-white mb-8 md:mb-10">+{gemsCollected} <span className="text-xl md:text-2xl text-blue-400">GEMS</span></div>
+                            <button onClick={() => onEnd(true, gemsCollected)} className="w-full bg-blue-600 hover:bg-blue-500 text-white font-black py-4 md:py-6 rounded-2xl md:rounded-3xl uppercase tracking-[0.3em] border-b-8 border-blue-900 shadow-2xl active:scale-95 transition-all text-lg md:text-xl">CONTINUA</button>
                         </div>
                     )}
                     {gameStatus === 'lost' && (
-                        <div className="bg-gray-900 border-4 border-white/20 rounded-[5rem] p-12 flex flex-col items-center text-center max-w-md w-full shadow-[0_0_100px_rgba(239,68,68,0.3)] animate-in zoom-in-95 duration-500">
-                            <i className={`fas ${isError666 ? 'fa-virus' : 'fa-skull-crossbones'} text-8xl text-red-600 mb-8 drop-shadow-[0_0_40px_rgba(239,68,68,0.5)]`}></i>
-                            <h2 className="text-6xl font-black italic text-red-600 mb-10 uppercase tracking-tighter">GAME OVER</h2>
-                            <button onClick={initLevel} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-6 rounded-3xl uppercase mb-5 shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-95 text-xl border-b-8 border-red-900"><i className="fas fa-redo"></i> RIPROVA</button>
-                            <button onClick={() => onEnd(false, 0)} className="w-full bg-gray-800 hover:bg-gray-700 text-gray-400 font-black py-5 rounded-3xl uppercase tracking-widest text-sm transition-all active:scale-95">TORNA AL MENU</button>
+                        <div className="bg-gray-900 border-4 border-white/20 rounded-[3rem] md:rounded-[5rem] p-8 md:p-12 flex flex-col items-center text-center max-w-md w-full shadow-[0_0_100px_rgba(239,68,68,0.3)] animate-in zoom-in-95 duration-500">
+                            <i className={`fas ${isError666 ? 'fa-virus' : 'fa-skull-crossbones'} text-6xl md:text-8xl text-red-600 mb-6 md:mb-8 drop-shadow-[0_0_40px_rgba(239,68,68,0.5)]`}></i>
+                            <h2 className="text-4xl md:text-6xl font-black italic text-red-600 mb-8 md:mb-10 uppercase tracking-tighter">GAME OVER</h2>
+                            <button onClick={initLevel} className="w-full bg-red-600 hover:bg-red-500 text-white font-black py-4 md:py-6 rounded-2xl md:rounded-3xl uppercase mb-4 md:mb-5 shadow-2xl flex items-center justify-center gap-4 transition-all active:scale-95 text-lg md:text-xl border-b-8 border-red-900"><i className="fas fa-redo"></i> RIPROVA</button>
+                            <button onClick={() => onEnd(false, 0)} className="w-full bg-gray-800 hover:bg-gray-700 text-gray-400 font-black py-4 md:py-5 rounded-2xl md:rounded-3xl uppercase tracking-widest text-xs transition-all active:scale-95">TORNA AL MENU</button>
                         </div>
                     )}
                 </div>

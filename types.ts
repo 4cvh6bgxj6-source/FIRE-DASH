@@ -17,10 +17,12 @@ export interface Level {
     speedMultiplier: number;
     color: string;
     locked?: boolean;
-    requiredTier?: 'vip'; // Nuova proprietà: Richiede VIP
-    isBossBattle?: boolean; // Nuova proprietà: Attiva la logica del Boss
+    requiredTier?: 'vip'; 
+    requiredSkinId?: string; // Nuova proprietà: Richiede una skin specifica equipaggiata
+    isBossBattle?: boolean; 
 }
 
+// Definizione dell'interfaccia Skin utilizzata nel catalogo skin e nei componenti di gioco
 export interface Skin {
     id: string;
     name: string;
@@ -28,12 +30,12 @@ export interface Skin {
     cost: number;
     unlocked: boolean;
     icon: string;
-    requiredTier?: 'free' | 'premium' | 'vip';
-    isGlitched?: boolean;
+    requiredTier: 'free' | 'premium' | 'vip';
+    hasBossFinisher?: boolean;
+    isEvent?: boolean;
     canFly?: boolean;
-    canShoot?: boolean; // Abilità Santa Claus (Gifts)
-    hasBossFinisher?: boolean; // NUOVA ABILITÀ: Bazooka finale contro il Boss
-    isEvent?: boolean; // Nuova proprietà per identificare skin evento
+    canShoot?: boolean;
+    isGlitched?: boolean;
 }
 
 export interface UserStats {
@@ -42,7 +44,7 @@ export interface UserStats {
     isPremium: boolean;
     isVip: boolean;
     selectedSkinId: string;
-    hasChristmasName?: boolean; // Ha sbloccato la funzionalità (Bundle Natale)
-    nameColorType?: 'default' | 'rainbow' | 'christmas' | 'custom'; // Tipo di colore attivo
-    customNameHex?: string; // Colore esadecimale personalizzato
+    hasChristmasName?: boolean; 
+    nameColorType?: 'default' | 'rainbow' | 'christmas' | 'custom'; 
+    customNameHex?: string; 
 }

@@ -16,14 +16,15 @@ export const LEVELS: Level[] = [
     { id: '12', name: 'Theory of Everything', difficulty: 'Insane', speedMultiplier: 2.3, color: '#06b6d4' },
     { id: '13', name: 'Electroman Adventures', difficulty: 'Insane', speedMultiplier: 2.4, color: '#f97316' },
     { id: '14', name: 'Darkness Hardcore', difficulty: 'Extreme', speedMultiplier: 4, color: '#ef4444' },
-    // LIVELLO BOSS FINALE
+    // LIVELLO BOSS FINALE - Richiede Skin Boss Hunter
     { 
         id: '99', 
         name: 'The Final Boss', 
-        difficulty: 'Demon', 
-        speedMultiplier: 2.5, 
+        difficulty: 'Extreme', 
+        speedMultiplier: 5, 
         color: '#ff00ff', 
         requiredTier: 'vip', 
+        requiredSkinId: 's-boss', // RESTRIZIONE SKIN
         isBossBattle: true 
     },
 ];
