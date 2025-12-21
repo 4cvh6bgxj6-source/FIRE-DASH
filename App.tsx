@@ -28,7 +28,6 @@ const App: React.FC = () => {
     
     const isChristmasSeason = true;
 
-    // Sistema di salvataggio automatico per OGNI username
     useEffect(() => {
         if (stats.username) {
             const storageKey = `fd_user_data_${stats.username.trim().toLowerCase()}`;
@@ -38,7 +37,6 @@ const App: React.FC = () => {
     }, [stats, unlockedSkins]);
 
     const handleLogin = (usernameInput: string, secretCode: string) => {
-        // Normalizza input: se vuoto diventa Guest, altrimenti usa l'input trim
         const effectiveUsername = usernameInput.trim() || 'Guest';
         const storageKey = `fd_user_data_${effectiveUsername.toLowerCase()}`;
         
@@ -59,11 +57,10 @@ const App: React.FC = () => {
         if (savedRaw) {
             try {
                 const parsed = JSON.parse(savedRaw);
-                // Carica le statistiche salvate sovrascrivendo i default
                 initialStats = { 
                     ...initialStats, 
                     ...parsed.stats,
-                    username: effectiveUsername // Assicura che il nome visualizzato sia quello attuale
+                    username: effectiveUsername 
                 };
                 initialSkins = parsed.unlockedSkins || ['s1'];
             } catch (e) {
@@ -73,7 +70,7 @@ const App: React.FC = () => {
 
         const code = secretCode.trim().toUpperCase();
         
-        // Codici Segreti (si applicano sopra i dati caricati)
+        // GESTIONE CODICI SEGRETI
         if (code === 'PREMIUM') {
             initialStats.isPremium = true;
             initialStats.gems += 1000;
@@ -82,22 +79,19 @@ const App: React.FC = () => {
             initialStats.isVip = true;
             initialStats.gems += 5000;
             if (!initialSkins.includes('s7')) initialSkins.push('s7');
-        } else if (code === 'ERROR666') {
+        } else if (code === 'ERROR666' || code === 'ERROR6666') {
+            // SBLOCCO SKIN ERROR 666
             initialStats.isVip = true; 
             initialStats.isPremium = true; 
             initialStats.selectedSkinId = 's666';
             if (!initialSkins.includes('s666')) initialSkins.push('s666');
             initialStats.gems += 6666;
+            console.log("Skin ERROR 666 Sbloccata con Codice!");
         } else if (code === 'ADMIN') {
             initialStats.isVip = true;
             initialStats.isPremium = true;
             initialStats.gems += 99999;
             if (!initialSkins.includes('s8')) initialSkins.push('s8');
-        }
-
-        // Logic check: Se aveva "christmas" ma non ha il bundle (es. reset), torna default
-        if (initialStats.nameColorType === 'christmas' && !initialStats.hasChristmasName) {
-            initialStats.nameColorType = 'default';
         }
 
         setStats(initialStats);
@@ -109,7 +103,7 @@ const App: React.FC = () => {
         if (success) {
             setStats(prev => ({
                 ...prev,
-                gems: prev.gems + gems + (prev.isVip ? 200 : 100)
+                gems: prev.gems + gems + (prev.isVip ? 50 : 0)
             }));
         }
         setView(AppState.LEVEL_SELECT);
@@ -120,73 +114,19 @@ const App: React.FC = () => {
             {isChristmasSeason && <div className="snow-container pointer-events-none z-0"></div>}
 
             {view === AppState.LOGIN && <LoginScreen onLogin={handleLogin} />}
-            {view === AppState.MENU && (
-                <MainMenu 
-                    stats={stats} 
-                    onNavigate={setView} 
-                    isChristmas={isChristmasSeason} 
-                    onUpdateStats={setStats} 
-                />
-            )}
-            {view === AppState.LEVEL_SELECT && (
-                <LevelSelect 
-                    levels={LEVELS} 
-                    stats={stats} // Passiamo stats per controllare il VIP
-                    onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} 
-                    onBack={() => setView(AppState.MENU)} 
-                />
-            )}
-            {view === AppState.GAME && currentLevel && (
-                <GameView 
-                    level={currentLevel} 
-                    skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} 
-                    username={stats.username} 
-                    isVip={stats.isVip} // PASSATO IL DATO VIP
-                    onEnd={handleLevelEnd} 
-                />
-            )}
-            {view === AppState.SKINS && (
-                <SkinSelector 
-                    skins={SKINS} 
-                    unlockedSkins={unlockedSkins} 
-                    selectedSkinId={stats.selectedSkinId} 
-                    gems={stats.gems} 
-                    stats={stats} 
-                    isChristmasSeason={isChristmasSeason} 
-                    onUnlock={(s, c) => { setStats(p => ({...p, gems: p.gems - c})); setUnlockedSkins(p => [...p, s.id]); }} 
-                    onSelect={(id) => setStats(p => ({...p, selectedSkinId: id}))} 
-                    onBack={() => setView(AppState.MENU)} 
-                />
-            )}
-            {view === AppState.SHOP && (
-                <Shop 
-                    stats={stats} 
-                    isChristmasSeason={isChristmasSeason} 
-                    onPurchase={(t, c) => setStats(p => ({...p, gems: p.gems - c, isPremium: t === 'premium' ? true : p.isPremium, isVip: t === 'vip' ? true : p.isVip}))} 
-                    onBack={() => setView(AppState.MENU)} 
-                />
-            )}
-            {view === AppState.GIFT_SHOP && (
-                <GiftShop onClaim={(a) => setStats(p => ({...p, gems: p.gems + a}))} onBack={() => setView(AppState.MENU)} />
-            )}
+            {view === AppState.MENU && <MainMenu stats={stats} onNavigate={setView} isChristmas={isChristmasSeason} onUpdateStats={setStats} />}
+            {view === AppState.LEVEL_SELECT && <LevelSelect levels={LEVELS} stats={stats} onSelectLevel={(l) => { setCurrentLevel(l); setView(AppState.GAME); }} onBack={() => setView(AppState.MENU)} />}
+            {view === AppState.GAME && currentLevel && <GameView level={currentLevel} skin={SKINS.find(s => s.id === stats.selectedSkinId) || SKINS[0]} username={stats.username} isVip={stats.isVip} onEnd={handleLevelEnd} />}
+            {view === AppState.SKINS && <SkinSelector skins={SKINS} unlockedSkins={unlockedSkins} selectedSkinId={stats.selectedSkinId} gems={stats.gems} stats={stats} isChristmasSeason={isChristmasSeason} onUnlock={(s, c) => { setStats(p => ({...p, gems: p.gems - c})); setUnlockedSkins(p => [...p, s.id]); }} onSelect={(id) => setStats(p => ({...p, selectedSkinId: id}))} onBack={() => setView(AppState.MENU)} />}
+            {view === AppState.SHOP && <Shop stats={stats} isChristmasSeason={isChristmasSeason} onPurchase={(t, c) => setStats(p => ({...p, gems: p.gems - c, isPremium: t === 'premium' ? true : p.isPremium, isVip: t === 'vip' ? true : p.isVip}))} onBack={() => setView(AppState.MENU)} />}
+            {view === AppState.GIFT_SHOP && <GiftShop onClaim={(a) => setStats(p => ({...p, gems: p.gems + a}))} onBack={() => setView(AppState.MENU)} />}
             {view === AppState.CHRISTMAS_EVENT && (
                 <ChristmasEvent 
-                    skins={SKINS}
-                    unlockedSkins={unlockedSkins}
-                    gems={stats.gems}
-                    onUnlock={(s, c) => { 
-                        setStats(p => ({...p, gems: p.gems - c})); 
-                        setUnlockedSkins(p => [...p, s.id]); 
-                    }}
+                    skins={SKINS} unlockedSkins={unlockedSkins} gems={stats.gems}
+                    onUnlock={(s, c) => { setStats(p => ({...p, gems: p.gems - c})); setUnlockedSkins(p => [...p, s.id]); }}
                     onUnlockBundle={(bundleSkins, cost) => {
                         const newIds = bundleSkins.map(s => s.id).filter(id => !unlockedSkins.includes(id));
-                        // SBLOCCA: Skin, Nome Natalizio e imposta subito il tipo a 'christmas'
-                        setStats(p => ({
-                            ...p, 
-                            gems: p.gems - cost, 
-                            hasChristmasName: true,
-                            nameColorType: 'christmas' 
-                        }));
+                        setStats(p => ({ ...p, gems: p.gems - cost, hasChristmasName: true, nameColorType: 'christmas' }));
                         setUnlockedSkins(p => [...p, ...newIds]);
                     }}
                     onBack={() => setView(AppState.MENU)}

@@ -31,6 +31,21 @@
             touch-action: none;
         }
 
+        /* EFFETTO GLITCH TOTALE */
+        .glitch-screen {
+            animation: glitch-anim 0.2s infinite;
+            filter: hue-rotate(90deg) contrast(1.5);
+        }
+
+        @keyframes glitch-anim {
+            0% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); filter: invert(0.1); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); filter: brightness(1.2); }
+            100% { transform: translate(0); }
+        }
+
         .rainbow-text {
             background: linear-gradient(
                 to right,
@@ -43,7 +58,6 @@
             font-weight: 900;
         }
 
-        /* NUOVO STILE NOME NATALIZIO */
         .christmas-text {
             background: linear-gradient(
                 to right,
@@ -65,7 +79,6 @@
             -webkit-tap-highlight-color: transparent;
         }
 
-        /* Effetto Neve */
         .snow-container {
             position: fixed;
             top: 0;
@@ -83,12 +96,6 @@
             from { background-position: 0 0; }
             to { background-position: 100px 400px; }
         }
-
-        @keyframes pulse-glow-red {
-            0%, 100% { box-shadow: 0 0 5px rgba(220, 38, 38, 0.5); }
-            50% { box-shadow: 0 0 20px rgba(220, 38, 38, 0.8); }
-        }
-        .glow-red { animation: pulse-glow-red 2s infinite; }
     </style>
 <script type="importmap">
 {

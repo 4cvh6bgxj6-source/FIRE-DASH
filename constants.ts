@@ -9,13 +9,19 @@ export const LEVELS: Level[] = [
     { id: '5', name: 'Base After Base', difficulty: 'Normal', speedMultiplier: 1.3, color: '#fb923c' },
     { id: '6', name: 'Cant Let Go', difficulty: 'Hard', speedMultiplier: 1.5, color: '#f87171' },
     { id: '7', name: 'Jumper', difficulty: 'Hard', speedMultiplier: 1.6, color: '#c084fc' },
-    { id: '8', name: 'Darkness Hardcore', difficulty: 'Extreme', speedMultiplier: 4, color: '#ef4444' },
-    // NUOVO LIVELLO BOSS
+    { id: '8', name: 'Time Machine', difficulty: 'Hard', speedMultiplier: 1.7, color: '#f472b6' },
+    { id: '9', name: 'Cycles', difficulty: 'Hard', speedMultiplier: 1.8, color: '#fbbf24' },
+    { id: '10', name: 'XStep', difficulty: 'Insane', speedMultiplier: 2.0, color: '#8b5cf6' },
+    { id: '11', name: 'Clutterfunk', difficulty: 'Insane', speedMultiplier: 2.2, color: '#ec4899' },
+    { id: '12', name: 'Theory of Everything', difficulty: 'Insane', speedMultiplier: 2.3, color: '#06b6d4' },
+    { id: '13', name: 'Electroman Adventures', difficulty: 'Insane', speedMultiplier: 2.4, color: '#f97316' },
+    { id: '14', name: 'Darkness Hardcore', difficulty: 'Extreme', speedMultiplier: 4, color: '#ef4444' },
+    // LIVELLO BOSS FINALE
     { 
         id: '99', 
         name: 'The Final Boss', 
         difficulty: 'Demon', 
-        speedMultiplier: 5, // VELOCITÀ AUMENTATA A 5X
+        speedMultiplier: 2.5, 
         color: '#ff00ff', 
         requiredTier: 'vip', 
         isBossBattle: true 
@@ -40,16 +46,16 @@ export const SKINS: Skin[] = [
     { id: 's7', name: 'Ball (Sole)', color: '#ffd700', cost: 0, unlocked: false, icon: 'fa-sun', requiredTier: 'vip' },
     { id: 's10', name: 'Spider Dash', color: '#ff4500', cost: 550, unlocked: false, icon: 'fa-spider', requiredTier: 'vip' },
     
-    // NUOVA SKIN BOSS HUNTER (VIP)
+    // SKIN BOSS HUNTER (CON BAZOOKA E SCHIVATA)
     { 
         id: 's-boss', 
         name: 'Boss Hunter', 
-        color: '#4ade80', // Verde Neon Militare
+        color: '#4ade80', 
         cost: 2000, 
         unlocked: false, 
         icon: 'fa-crosshairs', 
         requiredTier: 'vip',
-        hasBossFinisher: true // ABILITÀ BAZOOKA
+        hasBossFinisher: true 
     },
 
     // EVENTO NATALE
